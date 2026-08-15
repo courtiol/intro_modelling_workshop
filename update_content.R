@@ -11,6 +11,6 @@ system.time({
 
 for (q in quarto_files) {
     filename <- sub(".qmd", ".R", basename(q))
-    knitr::purl(q, output = paste0("extracted_Rcode/", filename), documentation = 0)
+    knitr::purl(q, output = paste0(dirname(q), "/", filename), documentation = 0)
 }
 
