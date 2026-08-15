@@ -29,11 +29,11 @@ install.packages(c("tidyverse", "sf", "units", "geomtextpath",
 
 ## Technical Notes & Development
 
-Here is a short synthesis of my notes, see NOTES.md for more details.
+Here is a short synthesis of my notes. For more details, see: NOTES.md
 
-### Rendering the slides
+### Rendering the Slides
 
-The main folders contain the Quarto documents (i.e. files with extension "*.qmd") used to generate each PDF.
+The main folders contain the Quarto documents (`.qmd` files) used to generate each PDF.
 You will need additional packages to render them:
 
 ```r
@@ -48,9 +48,9 @@ I did not use LLMs to produce slides or R content from scratch. Claude Sonnet 3.
 
 Observation: the ability of LLMs to parse code-based slides (Quarto) rather than XML-heavy formats (PowerPoint) significantly improves the quality of the review process.
 
-### Developer's Corner: Toolchain & Pain Points
+### Toolchain & Pain Points
 
-**The Stack**
+**Stack**
 This course uses the Quarto/Beamer combination to generate PDF slides. 
 
 **Reflections**
@@ -59,7 +59,8 @@ While the prospect of writing Markdown was attractive, the need for precise form
 **LaTeX Packages used:**
 `caption`, `textpos`, `xcolor`, `colortbl`, `makecell`, `tcolorbox`, `etoolbox`, `forest`, `amssymb`.
 
-**Installation (Fedora):**
+On Fedora, those can be installed as:
+
 ```bash
 sudo dnf install texlive-xxx  # replace xxx with package name
 ```
