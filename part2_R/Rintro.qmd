@@ -1,0 +1,1093 @@
+---
+title: "Introduction to Basic and Advanced Statistical Modelling"
+subtitle: "Using R"
+author: "Alexandre Courtiol"
+format:
+   beamer:
+       aspectratio: 169
+       toc: true       
+header-includes: |
+  \setbeamertemplate{frametitle continuation}{}
+  \setbeamertemplate{itemize items}[circle]
+  \usepackage{caption}
+  \captionsetup{labelformat=empty, justification=centering}
+  \usepackage{textpos}
+  \setlength{\TPHorizModule}{1cm}
+  \setlength{\TPVertModule}{1cm}
+  \setbeamertemplate{footline}{%
+    \hfill\usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+  }
+  \usepackage{xcolor}
+  \let\oldtexttt\texttt
+  \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| label: setup
+## set tibble sizes via pillar
+options(width = 90, pillar.width = 90,
+        pillar.print_min = 3, pillar.print_max = 3)
+
+## set output text size
+knitr::opts_chunk$set(size = "footnotesize")
+def.chunk.hook <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  if (!is.null(options$size) && options$size != "normalsize") {
+    paste0("\n\\", options$size, "\n\n", x, "\n\n\\normalsize")
+  } else {
+    x
+  }
+})
+
+## set base size in ggplot2
+ggplot2::theme_set(ggplot2::theme_grey(base_size = 20))
+
+## counter for practice slides, to be called with `r next_practice()`
+practice_counter <- 0
+next_practice <- function() {
+  practice_counter <<- practice_counter + 1
+  practice_counter
+}
+```
+
+# RStudio
+
+## Installation
+
+- install R: [https://cran.r-project.org/](https://cran.r-project.org/)
+- install RStudio Desktop: [https://posit.co/download/rstudio-desktop/](https://posit.co/download/rstudio-desktop/)
+- let us set the global options properly together
+
+## RStudio panes
+
+```{r}
+#| out-height: "10cm"
+#| fig-align: center
+knitr::include_graphics("figures/Rstudio.png", dpi = NA) # dpi = NA fix aspect ratio issue
+```
+
+
+## Practice `r next_practice()`
+
+Let's setup our working environment:
+
+1. create a new project
+2. create a new R script
+3. save the created R script into the project folder directory
+
+\vfill
+
+**NB:**
+
+- a project is defined by a simple (text) file. Its main benefit is to open RStudio with the correct working directory set (that is, the one where the project file is)
+- an R script is a (text) file where we can write R code
+
+
+## Practice `r next_practice()`
+
+Let's install the following R packages:
+
+1. {tidyverse}
+2. {sf}
+
+\vfill
+
+**NB:**
+
+- I will try to use {} consistently to indicate that something is a package
+- installing a package is only required once, unless you want to update the package or unless you installed a new version of R
+- I recommend using RStudio for installing packages rather than writing code since you don't want to keep running the installation
+
+
+# Reading data
+
+## The datasets
+
+```{r}
+#| out-height: "4cm"
+#| fig-align: center
+knitr::include_graphics("figures/MHB.png", dpi = NA)
+```
+
+\vspace{1em}
+
+> Since 1999, 267 one-km squares laid out in a mostly systematic grid across all of Switzerland have been surveyed annually by skilled, mostly volunteer ornithologists. Bird populations are recorded using a simplified territory mapping protocol with two visits per square above the timberline and three elsewhere. Surveys are conducted during the breeding season (mid-April to early July) along a square-specific transect route that does not change over the years.
+
+
+## Practice `r next_practice()`
+
+1. download the datasets from the following location: [https://zenodo.org/records/18480886
+](https://zenodo.org/records/18480886)
+2. extract the datasets into your R project within a folder called data_MHB
+
+. . .
+
+\vspace{1cm}
+
+**Pro tips:**
+
+- you can use `getwd()` to check where your project folder is located
+- this could be down using R code, but it is not necessary, nor useful here
+
+
+## Activating the {tidyverse}
+
+```{r}
+#| echo: true
+#| message: true
+library(tidyverse)
+```
+<!-- use this to explain what is a function & how to get help -->
+
+
+## The {tidyverse} environment
+
+The {tidyverse} is a meta package encapsulating an ecosystem of R packages (see [https://www.tidyverse.org](https://www.tidyverse.org) for more).
+
+\vspace{1em}
+
+There are currently 9 core packages automatically attached by the {tidyverse}:
+
+\begin{center}
+\raisebox{-0.5\height}{\includegraphics[width = 1.5cm]{"figures/tidyverse/hex-tidyverse"}}
+=
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-tibble"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-readr"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-dplyr"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-stringr"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-lubridate"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-forcats"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-tidyr"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-ggplot2"}}
+\raisebox{-0.5\height}{\includegraphics[width = 1cm]{"figures/tidyverse/hex-purrr"}}
+\end{center}
+
+\vfill
+
+- philosophy: making R more accessible
+- backward compatibility is not strictly enforced
+
+
+## Let's import the first dataset
+
+```{r}
+#| echo: true
+#| message: true
+species_count <- read_csv("data_MHB/header-species-count.csv")
+```
+<!-- use this to explain what is an object -->
+
+
+## Let's check the first dataset
+
+```{r}
+#| echo: true
+#| message: true
+species_count
+```
+
+. . .
+
+**Pro tips:**
+
+- check the output (a tibble) carefully to make sure you read in your data properly
+- if your are not using {readr}, the output may not be a tibble and would be better checked using `str()`
+
+
+## Practice `r next_practice()`
+
+- import the file `header-species-count.csv` to obtain the second dataset
+
+```{r}
+territories <- read_csv("data_MHB/data-territories.csv")
+```
+
+```{r}
+#| echo: true
+#| message: true
+territories
+```
+
+. . .
+
+**Pro tips:**
+
+- use `View()` to explore the datasets in an Excel-like fashion
+
+
+# Wrangling data
+
+## Data wrangling with {dplyr}
+
+In {dplyr} much can be achieved with a few functions
+
+```{r}
+#| out-height: "5cm"
+#| fig-align: center
+knitr::include_graphics("figures/dplyr.jpg", dpi = NA)
+```
+
+
+\begin{center}
+\begingroup \tiny source: \url{https://linkedin.com/in/adalbert-ngongang-phd-637995a3}\endgroup
+\end{center}
+
+We will study some of these functions and a few others to get you going
+
+
+## Choose columns using `select()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> select(samplearea_id, year, n_recorded_species)
+```
+
+. . .
+
+**Pro tips:**
+
+- you can use `-column_name` to drop a column called `column_name`
+- you can use selection helpers (e.g. `contains()`, `starts_with()`) to select columns using name patterns
+- you can use test(s) on column values to select (`where()`)
+
+
+## A few words about the pipe `|>`
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+species_count |> select(samplearea_id, year, n_recorded_species)
+```
+
+is interpreted exactly as this:
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+select(species_count, samplearea_id, year, n_recorded_species)
+```
+
+**NB:**
+
+- the pipe captures what precedes it and considers it as the first argument of the function that follows it
+- it makes the code more readable, as it emphasises the sequence of operations applied to the data
+
+
+## Extract one column using `pull()`
+
+You can use `select()` to choose one column, but it will remain a table (technically an object of class `tibble` or `data.frame`):
+```{r}
+#| echo: true
+#| message: true
+species_count |> select(n_recorded_species)
+```
+
+Instead `pull()` creates a vector, which can be easier to work with:
+```{r}
+#| echo: true
+#| message: true
+species_count |> pull(n_recorded_species)
+```
+
+
+## Choose rows using `filter()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> filter(year == 2025)
+```
+
+. . .
+
+**Pro tips:**
+
+- use `%in%` to filter multiple rows (e.g. `year %in% c(2000, 2025)`)
+- use `!=` to negate equality (e.g. `year != 2025` to keep all be 2025)
+
+
+## Use `filter() + if_any() + is.na()` to look for missing values
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> filter(if_any(everything(), is.na)) #everything() selects all columns
+```
+
+. . .
+
+```{r}
+#| echo: true
+#| message: true
+territories |> filter(if_any(everything(), is.na))
+```
+
+
+## Choose rows by position using `slice()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> slice(1:3) # keeps the first 3 rows
+```
+
+
+## Choose rows using `slice_min()` or `slice_max()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |>
+    slice_max(n_recorded_species, n = 3) # keeps the top 3 sites by n_recorded_species
+```
+
+. . .
+
+**Pro tips:**
+
+- use `with_ties = FALSE`, to obtain the number of rows you want despite ties
+- other slicing functions can be useful (e.g. `slice_head()`, `slice_sample()`)
+
+
+## Choose different rows using `distinct()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> distinct(samplearea_id, lon, lat)
+```
+
+
+## Chaining multiple operations using the pipe `|>`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    filter(year == 2025) |> 
+    select(samplearea_id, year)
+```
+
+. . .
+
+**NB:**
+
+- remember, this is interpreted by R as:
+`select(filter(species_count, year == 2025), samplearea_id, year) `
+- when chaining operations, keeping the data alone in the first line and indenting the rest improves the readability
+
+
+## Store your output into a reusable object using `<-` or `->`
+
+### Conventional way
+```{r}
+#| echo: true
+#| message: true
+species_count_2025 <- species_count |> filter(year == 2025)
+```
+
+\vspace{1em}
+
+### Alternative way
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> filter(year == 2025) -> species_count_2025
+```
+
+\vspace{1em}
+
+**Pro tips:**
+
+- the conventional way helps to spot which objects are being created in the script
+- when using many chained operation using the pipe `|>`, the alternative way lead to a more natural reading of the code
+
+
+
+## Sort rows using `arrange()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> arrange(year)
+```
+
+. . .
+
+**Pro tips:**
+
+- use multiple variables for hierarchical sorting
+- use `desc()` for sorting by decreasing values (e.g. `desc(year)`)
+
+
+## Practice `r next_practice()`
+
+Use `select()` and/or `filter()` and/or `slice()` and/or `arrange()` to determine:
+
+1. the largest number of recorded species across all years
+2. the largest number of recorded species in 2025
+
+
+## Create new columns using `mutate()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    select(samplearea_id, route_length, year) |>
+    filter(year == 2025) |> 
+    mutate(short_transect = route_length < mean(route_length))
+
+```
+
+. . .
+
+**Pro tips:**
+
+- use `.before =` or `.after =` to control where the new column is added
+
+
+## Collapse groups into summary statistics using `summarise()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    summarise(min_route_length = min(route_length),
+              max_route_length = max(route_length))
+```
+
+
+## Grouping operations
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    summarise(max_sp = max(n_recorded_species), .by = year)
+```
+
+. . .
+
+**Pro tips:**
+
+- `.by =` works with the other verbs too, but is sometimes called `by` (e.g. in `slice()`)
+- `.by =` is safer than `group_by()` which externalises the grouping
+
+
+
+## Collapse groups into list-columns using `summarise() + list()` 
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(territories_total > 0) |> 
+    summarise(sp = list(nameeg), .by = c(samplearea_id, year))
+```
+
+. . .
+
+**NB:**
+
+- the column `sp` is called a list-column
+
+
+## Line-by-line operations using `rowwise()`
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(territories_total > 0) |> 
+    summarise(sp = list(nameeg), .by = c(samplearea_id, year)) |> 
+    rowwise() |> 
+    mutate(mute_swan = "Mute Swan" %in% sp) |> 
+    ungroup()
+```
+
+. . .
+
+**Pro tips:**
+
+- do not forget to call `ungroup()`, otherwise future calls with also be executed line by line, which can impact the results and be slow
+
+
+## Counting with `count()`
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> count(year)
+```
+
+. . .
+
+**Pro tips:**
+
+- you can use multiple variables here to obtain the number of rows for each distinct combination of values across those variables (as in `distinct()`)
+- you can count using `summarise()` but `count()` is more direct
+- you can sort the outcome (without `arrange()`) using the option `sort = TRUE`
+
+
+## Combining tables using `left_join()`
+
+```{r}
+#| echo: true
+#| message: true
+territories |> left_join(species_count)
+```
+
+. . . 
+
+**NB:**
+
+- for `left_join()` to work automatically, some columns with identical names must exist in both datasets (called keys)
+
+
+## Practice `r next_practice()`
+
+Use the functions we have seen to obtain:
+
+1. the range of median elevation according to the number of visits
+2. the 3 most recorded species for each year
+3. the number of observations for *Sturnus vulgaris* for each year
+
+
+## Reshaping data from long to wide format using `pivot_wider()`
+
+Let's create an "site x species" detection table for 2025:
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(year == 2025) |> 
+    select(samplearea_id, nameeg, territories_total) |> 
+    pivot_wider(names_from = nameeg, 
+                values_from = territories_total)
+```
+
+
+## Practice `r next_practice()`
+
+Try to use `pivot_longer()` to get back to the original long format of the data from the output of the following code:
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+territories |> 
+    filter(year == 2025) |> 
+    select(samplearea_id, nameeg, territories_total) |> 
+    pivot_wider(names_from = nameeg, 
+                values_from = territories_total)
+```
+
+
+# Wrangling spatial data
+
+## The simple feature package {sf}
+
+{sf} is a package developed to handle spatial data which plays along with the {tidyverse} (it is inspired by PostGIS, see e.g. [postgis.net/workshops/postgis-intro/index.html](https://postgis.net/workshops/postgis-intro/index.html))
+
+```{r}
+#| echo: true
+#| message: true
+library(sf)
+species_count |> 
+    st_as_sf(coords = c("lon", "lat"), crs = 4326) -> species_count_sf
+```
+
+**NB:**
+
+- the order of the columns provided to `coords = ` matters (see next)
+- the coordinate reference system (`crs`) is here provided as a so-called EPSG code (4326 = WGS 84)
+
+
+## Simple feature collections
+
+```{r}
+#| echo: true
+#| message: true
+species_count_sf
+```
+
+**Pro tips:**
+
+- check carefully the bounding box to make sure that latitudes and longitudes are OK
+- simple feature collections are tibbles with a specific list-column called `geometry`
+
+
+## Computing the total surface area
+
+```{r}
+#| echo: true
+#| message: true
+species_count_sf |> 
+    summarise(geometry = st_combine(geometry)) |> # all points are brought together
+    mutate(hull = st_convex_hull(geometry), # create shapes encompassing all points
+           area_m2 = st_area(hull), # compute the area in m^2
+           area_km2 = units::set_units(area_m2, "km^2")) |> # express area in km^2
+    select(-hull) |> # drop the hull
+    st_drop_geometry() # drop the geometry
+```
+
+. . .
+
+- the syntax `namespace::function` allows one to use a function from a package without calling `library()`
+- you must use `st_drop_geometry()` to drop the geometry column from a sf collection; `select()` won't work because `geometry` is a protected column
+
+
+## Computing the distance of each site to the center of the studied area
+
+```{r}
+#| echo: true
+#| message: true
+species_count_sf |> 
+  distinct(samplearea_id, geometry) |> 
+  mutate(centroid = st_centroid(st_combine(geometry)),
+         dist = st_distance(centroid, geometry, by_element = TRUE))
+```
+
+**NB:** if a computation seems to take a very long time, it is *often* a sign that you are not handling the problem properly
+
+
+## Practice `r next_practice()`
+
+Use the functions we have seen to obtain:
+
+1. the sampled area (sensu convex hull) across years
+2. the IDs of the sampled areas which are most peripheral
+
+
+# Plotting data
+
+## Plots are built in {ggplot2} by adding components together
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 60%
+#| fig-align: "center"
+ggplot(species_count) +
+  geom_point(aes(y = n_recorded_species, x = route_length)) +
+  labs(y = "Nb. of recorded species", x = "Length of the transect (m)")
+```
+
+
+## The grammar of graphics plotting framework
+
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+#| out-height: "6cm"
+#| fig-align: center
+knitr::include_graphics("figures/ggplot_book.jpg", dpi = NA)
+```
+
+\centering
+\begingroup \tiny source: \url{https://ggplot2-book.org}\endgroup
+:::
+
+::: {.column width="50%"}
+```{r}
+#| out-height: "6cm"
+#| fig-align: center
+knitr::include_graphics("figures/ggplot2.jpg", dpi = NA)
+```
+
+\centering
+\begingroup \tiny source: \url{https://linkedin.com/in/adalbert-ngongang-phd-637995a3}\endgroup
+:::
+
+::::
+
+
+## Geoms are the fundamental building blocks
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 50%
+#| fig-align: "center"
+species_count |>
+  mutate(n_visits = factor(n_visits)) |> 
+  ggplot() +
+    geom_point(aes(y = median_elevation, x = n_visits))
+```
+
+
+## Geoms are the fundamental building blocks
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 50%
+#| fig-align: "center"
+species_count |>
+  mutate(n_visits = factor(n_visits)) |> 
+  ggplot() +
+    geom_boxplot(aes(y = median_elevation, x = n_visits))
+```
+
+## Practice `r next_practice()`
+
+1. check the possible geoms in the official ggplot2 cheat sheet (accessible via Help)
+2. explore briefly [r-graph-gallery.com](https://r-graph-gallery.com)
+
+
+## Objects created with {sf} can be plotted using {ggplot2} too
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 50%
+#| fig-align: "center"
+species_count_sf |>
+  filter(year == 2025) |>
+  ggplot() +
+    geom_sf(aes(size = n_recorded_species)) # geometry = geometry is assumed
+```
+
+
+## Understanding aesthetic mappings
+
+- `aes()` is used to defined how data connect to plotting elements via aesthetics
+- different geom expect different mandatory and optional aesthetics\
+(see e.g. `?geom_point`)
+
+. . .
+
+\vspace{0.5em}
+
+- `aes()` is not the place to force colours, sizes, etc.; it only forces relationship:
+
+### Bad
+```{r}
+#| echo: true
+#| message: true
+#| eval: false
+ggplot(species_count) +
+  geom_point(aes(y = n_recorded_species, x = route_length, colour = "blue"))
+```
+
+### Good
+```{r}
+#| echo: true
+#| message: true
+#| eval: false
+ggplot(species_count) +
+  geom_point(aes(y = n_recorded_species, x = route_length), colour = "blue")
+```
+
+
+## Understanding aesthetic mappings
+
+- `aes()` can be located outside a geom to apply to several of them at once:
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 50%
+#| fig-align: "center"
+species_count |>
+    filter(year == 2025) |> 
+    mutate(n_visits = factor(n_visits)) |> 
+    ggplot(aes(y = median_elevation, x = n_visits)) +
+      geom_violin() +
+      geom_jitter(height = 0, width = 0.1)
+```
+
+
+## Plot different subsets using faceting
+
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 60%
+#| fig-align: "center"
+species_count_sf |>
+    mutate(hotspot = factor(n_recorded_species > 50)) |> 
+    ggplot() +
+      geom_sf(aes(colour = hotspot, alpha = hotspot)) +
+      facet_wrap(~ year)
+```
+
+
+## Making plots beautiful & readable
+
+Much can be achieved by using a better theme and defining scales:
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 30%
+#| fig-align: "center"
+species_count_sf |>
+    filter(year == 2025) |> 
+    ggplot() +
+        geom_sf(aes(size = n_recorded_species,
+                    colour = n_recorded_species)) +
+        scale_color_binned(palette = rainbow, name = "Nb. of species") +
+        scale_size_binned(range = c(0.5, 5), name = "Nb. of species") +
+        guides(size = guide_bins(), color = guide_bins()) + # unusually needed here
+        theme_bw(base_size = 25)
+```
+
+
+## Making plots beautiful & readable
+
+To modify the theme yourself, use `theme_sub_*()` or (`theme()`) in combination with the appropriate `element_*()` function:
+
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 30%
+#| fig-align: "center"
+ggplot(species_count) +
+  geom_point(aes(y = n_recorded_species, x = route_length)) +
+  theme_sub_axis(text = element_text(size = 15, face = "bold", colour = "red"),
+                 title = element_text(face = "italic", hjust = 1)) +
+  theme_sub_panel(grid.major.x = element_line(linetype = "dotted", colour = "black"),
+                  background = element_rect(fill = "lightgreen")) +
+  theme_sub_plot(background = element_rect(fill = "dodgerblue", colour = "goldenrod",
+                                           linewidth = 10))
+```
+
+## Making plots beautiful & readable
+
+You can define a common theme to be used for all your plots:
+```{r}
+#| echo: true
+#| message: true
+#| out-height: 40%
+#| fig-align: "center"
+(theme_bw(base_size = 20) +
+  theme_sub_axis(text = element_text(colour = "red"))) |> 
+  theme_set()
+
+ggplot(species_count) +
+  geom_point(aes(y = n_recorded_species, x = route_length))
+```
+
+**NB:** the extra `()` are needed since `|>` binds more tightly than `+`
+
+
+
+## Practice `r next_practice()`
+
+- combine data wrangling and plotting to illustrate the change in species abundance across years for the top 6 most encountered species
+
+
+# A dash of base R
+
+## What is base R?
+
+### this is not base R (it relies on {tidyverse}, an external R package)
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    summarise(mean_nb_sp = mean(n_recorded_species), .by = year)
+```
+
+
+## What is base R?
+
+### this is typical base R (it does not rely on an external R package)
+```{r}
+#| echo: true
+#| message: true
+results <- data.frame(year = unique(species_count$year), mean_nb_sp = NA)
+for (y in unique(species_count$year)) {
+    n_recorded_species_year <- species_count$n_recorded_species[species_count$year == y]
+    results[results$year == y, "mean_nb_sp"] <- mean(n_recorded_species_year)
+}
+head(results, n = 3)
+```
+
+\vspace{1em}
+
+**NB:**
+
+- it looks more complicated (but from a developer's perspective, it is actually clearer)
+
+
+## What is base R?
+
+### but this is also base R (and a little closer to {tidyverse} in spirit)
+```{r}
+#| echo: true
+#| message: true
+results <- with(species_count, 
+                aggregate(list(mean_nb_sp = n_recorded_species),
+                          by = list(year = year), FUN = mean))
+head(results, n = 3)
+```
+
+\vspace{1em}
+
+**NB:**
+
+- there are often plenty of alternatives to achieve the same output
+
+
+## Extracting elements from vectors
+```{r}
+#| echo: true
+#| message: true
+some_vector <- letters
+some_vector
+some_vector[c(1, 12, 5, 24)]
+some_vector[some_vector %in% c("a", "l", "e", "x")]
+
+some_namedvector <- c(a = 1, b = 5)
+some_namedvector["b"]
+```
+
+
+## Extracting elements from lists
+```{r}
+#| echo: true
+#| message: true
+some_list <- list(1, 1:5)
+some_list
+some_list[2]
+some_list[[2]]
+some_list[[2]][2]
+```
+
+## Extracting elements from named lists
+```{r}
+#| echo: true
+#| message: true
+some_namedlist <- list(a = 1, b = 1:5)
+some_namedlist["b"]
+some_namedlist[["b"]]
+some_namedlist$b
+```
+
+
+## Extracting elements from matrices
+```{r}
+#| echo: true
+#| message: true
+some_matrix <- matrix(1:9, nrow = 3)
+some_matrix
+some_matrix[2, ]
+some_matrix[, 2]
+some_matrix[2, 2]
+```
+
+
+## Extracting elements from matrices
+```{r}
+#| echo: true
+#| message: true
+some_matrix[c(1, 3), c(1, 3)]
+some_matrix[cbind(c(1, 3), c(1, 3))]
+```
+
+
+## Extracting elements from named matrices
+```{r}
+#| echo: true
+#| message: true
+colnames(some_matrix) <- paste0("col_", 1:3)
+rownames(some_matrix) <- paste0("row_", 1:3)
+some_matrix
+some_matrix["row_2", "col_3"]
+```
+
+
+## Extracting elements from data.frames / tibbles
+
+```{r}
+#| echo: true
+#| message: true
+species_count[1, ]
+species_count[, 1]
+```
+
+## Extracting elements from data.frames / tibbles
+
+```{r}
+#| echo: true
+#| message: true
+species_count[, "year"]
+species_count["year"]
+```
+
+## Extracting elements from data.frames / tibbles
+
+```{r}
+#| echo: true
+#| message: true
+species_count_small <- slice(species_count, 1:10) # for smaller data
+species_count_small[["year"]]
+species_count_small$year
+```
+
+
+## A few very useful base R functions I would be sad to work without
+
+Check the following on your own time:
+
+- `help()` for help (or `?` for short)
+- `plot()` for fast & dirty plots
+- `str()` for inspecting objects
+- `dput()` for sharing a reproducible example when asking for help (useful for LLMs)
+- `function()` for creating a function (or `\()` for short)
+- `debugonce()` for debugging a function line by line
+- `rnorm()`, `runif()` for simulating data
+- `set.seed()` for "fixing" randomness
+- `replicate()` for doing something several times
+
+**Pro tips:**
+
+- check them out in your own time; they are worth learning about
+
+
+# House keeping
+
+## When and what to update
+
+- update R packages regularly using the RStudio "Packages tab" (at least once a month)
+- update R a few times a year:\
+check [www.r-project.org](https://www.r-project.org) (May and October tend to be good times)
+- update RStudio at least after each update of R
+
+
+# Learning more
+
+## Getting help
+
+- don't forget that functions have help pages associated to them
+- R for Data Science free book: [r4ds.hadley.nz](https://r4ds.hadley.nz)
+- there is an active Slack channel: [dslc.io](https://dslc.io)
+- talk to each others
+- LLMs?\
+if you do, don't blindly copy/paste, and beware:\
+LLMs make mistakes and make things up
+
+
+## Getting better
+
+- learn "base R" too (e.g. [cran.r-project.org/doc/manuals/r-release/R-intro.html](https://cran.r-project.org/doc/manuals/r-release/R-intro.html))
+- try to understand why things do not behave as you expect by experimenting\
+avoid to always use a workaround
+- do use LLMs to review your code (rather than to create it)\
+the more you know, the more LLMs will be helpful to you!
+
+# Questions? {.unnumbered .unlisted}

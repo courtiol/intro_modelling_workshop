@@ -1,0 +1,346 @@
+---
+title: "Introduction to Basic and Advanced Statistical Modelling"
+subtitle: "Using R (solutions to exercises)"
+author: "Alexandre Courtiol"
+format:
+   beamer:
+       aspectratio: 169
+       toc: true
+       toc-depth: 2
+       classoption: t
+header-includes: |
+  \setbeamertemplate{frametitle continuation}{}
+  \setbeamertemplate{itemize items}[circle]
+  \usepackage{caption}
+  \captionsetup{labelformat=empty, justification=centering}
+  \usepackage{textpos}
+  \setlength{\TPHorizModule}{1cm}
+  \setlength{\TPVertModule}{1cm}
+  \setbeamertemplate{footline}{%
+    \hfill\usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+  }
+  \usepackage{xcolor}
+  \let\oldtexttt\texttt
+  \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+  
+  \AtBeginSection[]{ % for centering the section slides since others are top aligned
+    \begin{frame}[c]
+    \centering
+    \Large\insertsectionhead
+    \end{frame}
+  }
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| label: setup
+## set tibble sizes via pillar
+options(width = 90, pillar.width = 90,
+        pillar.print_min = 4, pillar.print_max = 4)
+
+## set output text size
+knitr::opts_chunk$set(size = "footnotesize")
+def.chunk.hook <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  if (!is.null(options$size) && options$size != "normalsize") {
+    paste0("\n\\", options$size, "\n\n", x, "\n\n\\normalsize")
+  } else {
+    x
+  }
+})
+
+## counter for practice slides, to be called with `r next_practice()`
+practice_counter <- 0
+next_practice <- function(counter = NULL) {
+  if (!is.null(counter)) 
+      practice_counter <<- counter
+  else
+    practice_counter <<- practice_counter + 1
+  practice_counter
+}
+
+library(tidyverse)
+library(sf)
+species_count <- read_csv("data_MHB/header-species-count.csv")
+species_count_sf <- st_as_sf(species_count, coords = c("lon", "lat"), crs = 4326)
+```
+
+# Reading data
+
+## Practice `r next_practice(4)`
+```{r}
+#| echo: true
+#| message: true
+territories <- read_csv("data_MHB/data-territories.csv")
+```
+
+# Wrangling data
+
+## Practice `r next_practice(5)`a
+
+Use `select()` and/or `filter()` and/or `slice()` and/or `arrange()` to determine:
+
+1. the largest number of recorded species across all years
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+species_count |> 
+    arrange(desc(n_recorded_species)) |> 
+    slice(1) |> 
+    select(n_recorded_species)
+```
+
+or
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+species_count |> 
+    filter(n_recorded_species == max(n_recorded_species)) |> 
+    select(n_recorded_species)
+```
+
+## Practice `r next_practice(5)`b
+
+Use `select()`, `filter()`, `slice()` and/or `arrange()` to determine:
+
+2. the largest number of recorded species in 2025
+
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+species_count |> 
+    filter(year == 2025) |> 
+    filter(n_recorded_species == max(n_recorded_species)) |> 
+    select(n_recorded_species)
+```
+
+but NOT this:
+
+```{r}
+#| eval: false
+#| echo: true
+#| message: true
+species_count |> 
+    filter(year == 2025, n_recorded_species == max(n_recorded_species)) |>
+    select(n_recorded_species)
+```
+Do you understand why?
+<!-- if both are used together, it is like an AND and the condition is here never satisfied -->  
+
+
+## Practice `r next_practice(6)`a
+
+Use the functions we have seen to obtain:
+
+1. the range of median elevation according to the number of visits
+
+```{r}
+#| echo: true
+#| message: true
+species_count |> 
+    summarise(median_elevation_min = min(median_elevation),
+              median_elevation_max = max(median_elevation),
+              .by = n_visits)
+```
+
+
+## Practice `r next_practice(6)`b
+
+Use the functions we have seen to obtain:
+
+2. the number of observations for *Sturnus vulgaris* for each year
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(namelt == "Sturnus vulgaris") |> 
+    summarise(territories_sum = sum(territories_total, na.rm = TRUE), # NAs present
+              .by = year)
+```
+
+
+## Practice `r next_practice(6)`c
+
+Use the functions we have seen to obtain:
+
+3. the 3 most recorded species for each year
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    summarise(territories_sum = sum(territories_total),
+              .by = c(year, nameeg, namelt)) |> # aggregate across samplearea_id
+    slice_max(territories_sum, n = 3, by = year) |> # pick top 3 per year
+    select(year, nameeg, namelt, territories_sum)
+```
+
+
+## Practice `r next_practice(7)`
+
+Try to use `pivot_longer()` to get back to the original long format of the data from the output of the following code:
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(year == 2025) |> 
+    select(samplearea_id, nameeg, territories_total) |> 
+    pivot_wider(names_from = nameeg, 
+                values_from = territories_total) |> 
+    pivot_longer(-samplearea_id,
+                 names_to = "nameeg",
+                 values_to = "territories_total")
+```
+
+
+# Wrangling spatial data
+
+## Practice `r next_practice(8)`a
+
+Use the functions we have seen to obtain:
+
+1. the sampled area (sensu convex hull) across years
+
+```{r}
+#| echo: true
+#| message: true
+species_count_sf |> 
+    summarise(geometry = st_combine(geometry), .by = year) |> 
+    mutate(hull = st_convex_hull(geometry),
+           area = st_area(hull),
+           area_km2 = units::set_units(area, "km^2")) |> 
+    select(-hull) |> 
+    st_drop_geometry()
+```
+
+
+## Practice `r next_practice(8)`b (1)
+
+Use the functions we have seen to obtain:
+
+2. the IDs of the sampled areas which are most peripheral
+
+Simple sorting by distance to centroid (but lacks threshold)
+```{r}
+#| eval: true
+#| echo: true
+#| message: true
+species_count_sf |> 
+  distinct(samplearea_id, geometry) |> 
+  mutate(centroid = st_centroid(st_combine(geometry)),
+         dist = st_distance(centroid, geometry, by_element = TRUE)) |> 
+  arrange(desc(dist)) |> 
+  as_tibble() # (for slide only -> skip metadata clutter)
+```
+
+
+## Practice `r next_practice(8)`b (2)
+
+More useful, but more complex: intersection with concave hull outline
+```{r}
+#| echo: true
+#| message: true
+species_count_sf |> 
+  distinct(samplearea_id, .keep_all = TRUE) |> 
+  mutate(all_points = st_combine(geometry), # combine points into new geometry
+         hull = st_concave_hull(all_points, ratio = 0.2), # create concave hull
+         perimeter = st_boundary(hull), # extract outer line of the hull
+         perimeter = st_buffer(perimeter, dist = 1000), # create buffer zone around it
+         on_perim = st_intersects(perimeter, geometry, # test if points fall into buffer
+                                  by_element = TRUE)) -> data_perimeter_sf 
+  
+data_perimeter_sf |> 
+    filter(on_perim) |> 
+    pull(samplearea_id) # pull() extracts a column
+```
+
+
+## Practice `r next_practice(8)`b (2)
+
+More useful, but more complex: intersection with concave hull outline
+```{r}
+#| echo: true
+#| message: true
+#| out-height: "50%"
+#| fig-align: "center"
+theme_set(theme_bw(base_size = 20)) # setting the theme for all plots
+ggplot(data_perimeter_sf) +
+  geom_sf(aes(geometry = perimeter)) +
+  geom_sf(aes(colour = on_perim)) # geometry = geometry is implicit
+```
+
+
+# Plotting data
+
+## Practice `r next_practice(10)` (1)
+
+- combine data wrangling and plotting to illustrate the change in species abundance across years for the top 6 most encountered species
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    summarise(territories_sum = sum(territories_total),
+              .by = c(nameeg, namelt)) |> 
+    slice_max(territories_sum, n = 6) |> 
+    pull(namelt) -> top6sp
+
+top6sp
+```
+
+## Practice `r next_practice(10)` (2)
+
+- combine data wrangling and plotting to illustrate the change in species abundance across years for the top 6 most encountered species
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(namelt %in% top6sp) |> 
+    summarise(territories_sum = sum(territories_total),
+              .by = c(nameeg, namelt, year)) -> top6_across_time
+
+top6_across_time
+```
+
+## Practice `r next_practice(10)` (3a)
+
+- combine data wrangling and plotting to illustrate the change in species abundance across years for the top 6 most encountered species
+
+```{r}
+#| echo: true
+#| message: true
+#| fig-width: 15
+#| out-width: "85%"
+#| fig-align: "center"
+ggplot(top6_across_time) +
+  geom_line(aes(y = territories_sum, x = year, colour = nameeg))
+```
+
+
+## Practice `r next_practice(10)` (3b)
+
+- combine data wrangling and plotting to illustrate the change in species abundance across years for the top 6 most encountered species
+
+```{r}
+#| echo: true
+#| message: true
+#| fig-width: 15
+#| out-height: "60%"
+#| fig-align: "center"
+ggplot(top6_across_time) +
+  geom_line(aes(y = territories_sum, x = year)) +
+  facet_wrap(~ nameeg, scales = "free_y")
+```
