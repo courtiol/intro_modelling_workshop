@@ -1,0 +1,324 @@
+---
+title: "Introduction to Basic and Advanced Statistical Modelling"
+subtitle: "Making workflows reproducible"
+author: "Alexandre Courtiol"
+format:
+   beamer:
+       aspectratio: 169
+       toc: true
+       classoption: t
+header-includes: |
+  \setbeamertemplate{frametitle continuation}{}
+  \setbeamertemplate{itemize items}[circle]
+  \usepackage{caption}
+  \captionsetup{labelformat=empty, justification=centering}
+  \setbeamertemplate{footline}{%
+    \hfill\usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+  }
+  \usepackage{xcolor}
+  \let\oldtexttt\texttt
+  \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+  
+  \AtBeginSection[]{ % for centering the section slides since others are top aligned
+    \begin{frame}[c]
+    \centering
+    \Large\insertsectionhead
+    \end{frame}
+  }
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| label: setup
+## set tibble sizes via pillar
+options(width = 90, pillar.width = 90,
+        pillar.print_min = 3, pillar.print_max = 3)
+
+## set output text size
+knitr::opts_chunk$set(size = "footnotesize")
+def.chunk.hook <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  if (!is.null(options$size) && options$size != "normalsize") {
+    paste0("\n\\", options$size, "\n\n", x, "\n\n\\normalsize")
+  } else {
+    x
+  }
+})
+
+## set base size in ggplot2
+ggplot2::theme_set(ggplot2::theme_grey(base_size = 20))
+
+## counter for practice slides, to be called with `r next_practice()`
+practice_counter <- 0
+next_practice <- function() {
+  practice_counter <<- practice_counter + 1
+  practice_counter
+}
+```
+
+# What is reproducibility?
+
+## Reproducibility is not binary
+
+Reproducibility is best seen as a continuum within a multidimensional space:
+
+- **repeatability**: can others obtain the same results given access to the same data?
+- **transparency**: are explanations good enough to be understood by others?
+- **accessibility**: can others find and download the exact data and code used?
+- **compatibility**: can they run the code on a different computer/OS today?
+- **sustainability**: will the code still run in X years after package updates?
+- **generalizability**: can the code be applied to a new, similar dataset?
+
+. . .
+
+\vspace{1cm}
+
+**NB:**
+
+- names are my own (many synonymous exist)
+- improving any dimension takes intentional time/effort and introduce trade-offs (e.g. improving generalizability decreases clarity)
+- in this very short introduction, I focus on **repeatability**
+
+
+# Why making workflows reproducible?
+
+## Increasing reproducibility benefits people
+
+Given that reproducibility comes at a cost, the main question to answer is:
+
+### who shall benefit from the effort of making your code reproducible?
+
+. . .
+
+- yourself
+
+  - [x] yourself right now
+  - [ ] yourself in the near future (e.g. writing the paper)
+  - [ ] yourself in the distant future (e.g. analyzing similar data)
+
+. . .
+
+\vspace{0.5em}
+- your immediate circle
+
+  - [ ] your supervisor / PI
+  - [ ] your colleagues and collaborators
+  - [ ] potential reviewers, auditors, or evaluators
+
+. . .
+
+\vspace{0.5em}
+- the wider community
+
+  - [ ] those interested in your data
+  - [ ] those interested in your research question
+  - [ ] those interested in your methodology
+
+. . .
+
+**NB:** many answers can simultaneously apply
+
+
+## Universal benefits of repeatable code
+
+In comparison to just producing results on the fly (i.e. taken from the R console), writing repeatable scripts/documents provides the following benefits:
+
+- it prevents coding mistakes
+- exactly what you did is tracked^[a repeatable code tracks what code does but not how the code changed over time;\
+ the latter can instead can be done using a version control system, such as git/GitHub]
+- updating the results after updating the data is easy
+
+
+# How to make workflows repeatable?
+
+## Various approach can be used to improve repeatability of R-based workflows
+
+```{r}
+#| echo: false
+df <- data.frame(Tool = c("R script", "R package*", "sweave", "rmarkdown/quarto"),
+                 "Literate programming**" = c("no", "yes", "yes", "yes"),
+                 Setup = c("simple", "difficult", "medium", "simple"),
+                 "Learning curve" = c("low", "high", "high", "low/mid"),
+                 check.names = FALSE)
+
+knitr::kable(df, booktabs = TRUE, align = "lccc") |> 
+  kableExtra::kable_styling(font_size = 10)
+```
+\*i.e a specific R package which main goal is to reproduce the results of a workflow
+
+\**mixing prose and code
+
+. . .
+
+**Conclusion:**
+
+- rmarkdown/quarto improves repeatability at low cost
+- syntax errors in rmarkdown/quarto can be frustrating, but LLMs are exceptionally efficient at debugging these specific issues
+- quarto can do the same & more than rmarkdown, so I will focus on that
+
+
+# A quick introduction to quarto
+
+## Practice `r next_practice()`
+
+- create a new quarto HTML document using RStudio menu and render it
+
+
+## What is quarto?
+
+It is defined as an "open-source scientific and technical publishing system"
+
+```{r}
+#| out-height: "10cm"
+#| fig-align: center
+knitr::include_graphics("figures/rstudio-qmd-how-it-works.png", dpi = NA) # dpi = NA fix aspect ratio issue
+```
+
+- the R package {knitr} converts quarto files into the markdown format
+- the software pandoc converts markdown files into various output formats
+
+
+## Key structure
+
+1. a header defining the general properties of the document, in YAML format
+2. text in markdown, html, or LaTeX
+3. chunks of computer code
+
+
+## The header
+
+### Minimal example
+
+```
+---
+title: "Some title"
+format: html
+---
+```
+
+## The header
+
+### A real example
+
+\begingroup\tiny
+```
+---
+title: "Introduction to Basic and Advanced Statistical Modelling"
+subtitle: "Making workflows reproducible"
+author: "Alexandre Courtiol"
+format:
+   beamer:
+       aspectratio: 169
+       toc: true
+       classoption: t
+header-includes: |
+  \setbeamertemplate{frametitle continuation}{}
+  \setbeamertemplate{itemize items}[circle]
+  \usepackage{caption}
+  \captionsetup{labelformat=empty, justification=centering}
+  \setbeamertemplate{footline}{%
+    \hfill\usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+  }
+  \usepackage{xcolor}
+  \let\oldtexttt\texttt
+  \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+editor_options: 
+  chunk_output_type: console
+---
+```
+\endgroup
+
+**NB:** this is part of the one used for this presentation
+
+
+## The header
+
+The header is a particularly fragile component
+
+- spacing matters
+- copy/pasting headers across documents usually leads to unattended changes
+- much of the content must be tailored to the selected output format
+
+
+## The text
+
+This is the easy part
+
+- write plain text and use `#`, `##`, `###` to define a hierarchy of sections\
+  (if the hierarchy is messed up it can be because a chunk is located at the highest level of the hierarchy)
+- use `*text*`, `**text**`, `***text***`, to create *text*, **text** & ***text***, respectively
+- use `[link_text](weblink)` to create hyperlinks
+
+
+## Chunks of R code
+
+\begingroup\footnotesize
+````markdown
+`r ''````{r}
+#| option1: argument for option1
+...
+#| optionN: argument for optionN
+some R code
+```
+````
+\endgroup
+
+### Example
+
+\begingroup\footnotesize
+````markdown
+`r ''````{r}
+#| label: illustrating filter
+#| echo: true
+#| message: true
+species_count |> filter(year == 2025)
+```
+````
+\endgroup
+
+. . .
+
+
+**Pro tips:**
+
+- defining labels using `#| label: some label` helps to identify where issues arise
+- render the document frequently to discover mistakes soon after they are introduced
+
+## Practice `r next_practice()`
+
+1. read the page [quarto.org/docs/authoring/markdown-basics.html](https://quarto.org/docs/authoring/markdown-basics.html)\
+   from the beginning until the end of the section entitled "Tables"
+2. read the entire page [quarto.org/docs/computations/r.html](https://quarto.org/docs/computations/r.html)
+3. add an R chunk, an image, and some text into your quarto document and render it
+4. switch the format from `html` to `pdf` and render the document again^[this will require installing TinyTeX]
+5. explore the quarto guide: [quarto.org/docs/guide](https://quarto.org/docs/guide)
+
+
+# Beyond repeatability
+
+## How to improve other aspects of reproducibility
+
+::: {.incremental}
+- **transparency**: document *why* you do things and not just *how* you do things
+- **accessibility**: host your data and code on platforms such as GitHub, Zenodo, ...
+- **compatibility**: make sure to try your code on other computers
+- **sustainability**: minimize external dependencies; at minima document package version using `sessionInfo()`, or better use systems such as {renv} which save and load specific versions of R packages; for longer sustainability learn how to build containers (e.g. docker)
+- **generalizability**: design functions, do not hardcode parameters, do not use indices
+:::
+
+. . .
+
+\vspace{1cm}
+
+**NB:**
+
+- many of these improvements can be achieved at minimal costs
+- remember that repeatability is a continuum (e.g. the more generalizable the code one wants, the more effort one must put into creating the code)
+
+# Questions? {.unnumbered .unlisted}
