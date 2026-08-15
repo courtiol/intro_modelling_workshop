@@ -1,43 +1,65 @@
 # Introduction to Basic and Advanced Statistical Modelling
 
-This is the content of an introductory course to statistical modelling.
+**NB:** this repository is a work in progress.
 
-Here is a list of the R packages used in the course:
+It contains the material used for a course in statistical modelling.
+
+## 🚀 Getting Started
+
+### Course Materials
+The course is divided into five parts. To access the presentations, navigate to the corresponding folder and download the **PDFs**:
+
+*   `part1_introduction` $\rightarrow$ introduction.pdf
+*   `part2_R` $\rightarrow$ Rintro.pdf
+*   `part3_quarto` $\rightarrow$ quarto_intro.pdf
+*   `part4_fundamentals` $\rightarrow$ fundamentals.pdf
+*   `part5_modelling` $\rightarrow$ modelling_intro.pdf
+
+### Running the Code
+If you wish to run the examples from the slides, use the `.R` files. These contain all code used in the presentations, including hidden code used to generate figures.
+
+**Dependencies:**
+
+To run the code, install the following R packages:
 
 ```r
-packages_needed_for_user <- c("tidyverse", "sf", "units", "geomtextpath",
-                              "nimble", "posterior", "bayesplot",
-                              "spaMM")
-                     
-packages_needed_for_devel <- c("quarto", "knitr", "kableExtra")
+install.packages(c("tidyverse", "sf", "units", "geomtextpath", 
+                   "nimble", "posterior", "bayesplot", "spaMM"))
 ```
 
-After running the previous chunk in R, you can install those packages like this:
+## Technical Notes & Development
+
+Here is a short synthesis of my notes, see NOTES.md for more details.
+
+### Rendering the slides
+
+The main folders contain the Quarto documents (i.e. files with extension "*.qmd") used to generate each PDF.
+You will need additional packages to render them:
+
 ```r
-install.packages(packages_needed_for_user)
-install.packages(packages_needed_for_devel) # only if you need to re-render the slides
+install.packages(c("quarto", "knitr", "kableExtra"))
 ```
 
+### LLM Usage Disclosure
+I did not use LLMs to produce slides or R content from scratch. Claude Sonnet 3.5 and Gemma 4 were used for:
+- Converting LibreOffice slides to Quarto (text extraction).
+- Troubleshooting Quarto/LaTeX formatting issues.
+- Content review (checking for typos, statistical inaccuracies, and conceptual gaps).
 
-Here is a list of the LaTeX packages used to create the slides:
+Observation: the ability of LLMs to parse code-based slides (Quarto) rather than XML-heavy formats (PowerPoint) significantly improves the quality of the review process.
 
-```latex
-caption
-textpos
-xcolor
-colortbl
-makecell
-tcolorbox
-etoolbox
-forest
-amssymb
-```
+### Developer's Corner: Toolchain & Pain Points
 
-On my linux Fedora-based system, those can be installed in the terminal as:
+**The Stack**
+This course uses the Quarto/Beamer combination to generate PDF slides. 
 
+**Reflections**
+While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX. This resulted in a "polyglot" mix of YAML, Markdown, CSS, and LaTeX, which can lead to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
+
+**LaTeX Packages used:**
+`caption`, `textpos`, `xcolor`, `colortbl`, `makecell`, `tcolorbox`, `etoolbox`, `forest`, `amssymb`.
+
+**Installation (Fedora):**
 ```bash
-sudo dnf install texlive-xxx
+sudo dnf install texlive-xxx  # replace xxx with package name
 ```
-
-with `xxx` corresponding to the name of the LaTeX package.
-
