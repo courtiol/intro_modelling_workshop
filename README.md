@@ -42,9 +42,9 @@ install.packages(c("quarto", "knitr", "kableExtra"))
 
 ### LLM Usage Disclosure
 I did not use LLMs to produce slides or R content from scratch. Claude Sonnet 3.5 and Gemma 4 were used for:
-- Converting LibreOffice slides to Quarto (text extraction).
-- Troubleshooting Quarto/LaTeX formatting issues.
-- Content review (checking for typos, statistical inaccuracies, and conceptual gaps).
+- converting LibreOffice slides to Quarto (text extraction).
+- troubleshooting Quarto/LaTeX formatting issues.
+- content review (checking for typos, statistical inaccuracies, and conceptual gaps).
 
 Observation: the ability of LLMs to parse code-based slides (Quarto) rather than XML-heavy formats (PowerPoint) significantly improves the quality of the review process.
 
