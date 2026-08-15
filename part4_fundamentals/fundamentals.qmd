@@ -4,7 +4,7 @@ subtitle: "Fundamentals of statistics"
 author: "Alexandre Courtiol"
 format:
    beamer:
-       keep-tex: true
+       keep-tex: false
        aspectratio: 169
        toc: true
        classoption: t
