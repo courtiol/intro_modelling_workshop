@@ -1,0 +1,150 @@
+---
+title: "Introduction to Basic and Advanced Statistical Modelling"
+subtitle: "From LMs to GLMMs"
+author: "Alexandre Courtiol"
+format:
+   beamer:
+       keep-tex: true
+       aspectratio: 169
+       toc: true
+       classoption: t
+knitr:
+  opts_chunk: 
+    dev: cairo_pdf
+execute:
+  cache: false
+header-includes: |
+  \setbeamertemplate{frametitle continuation}{}
+  \setbeamertemplate{itemize items}[circle]
+  \usepackage{caption}
+  \usepackage{textpos}
+  \setlength{\TPHorizModule}{1cm}
+  \setlength{\TPVertModule}{1cm}
+  
+  % credit line
+  \newcommand{\credit}{\scriptsize\textcolor{gray!70!black}{\quad courtiol@izw-berlin.de | \url{www.datazoogang.de} | \url{www.izw-berlin.de/en}}}
+  
+  % create footer with slide number
+  \setbeamertemplate{footline}{%
+    \credit\hfill\usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+  }
+  
+  \usepackage{colortbl}
+  \usepackage{makecell}
+  \usepackage{tcolorbox}
+  \tcbuselibrary{skins}
+  \usepackage{etoolbox}
+  \usepackage{forest}
+  \usepackage{amssymb}
+
+  % make the red boxes around important stuff
+  \newtcolorbox{callout}{%
+    colback=white, 
+    colframe=red, 
+    boxrule=1pt, 
+    arc=6pt, 
+    boxsep=2pt, 
+    left=8pt, 
+    right=8pt, 
+    top=4pt, 
+    bottom=4pt,
+    before skip=6pt, % space before the box
+    after skip=6pt   % space after the box
+  }
+  
+  % 95% CI
+  \newcommand{\ci}{\ensuremath{\text{CI}_{\text{95\%}}}}
+  
+  % highlights
+  \newcommand{\bluenorm}[1]{\textcolor{bluebeamer}{#1}}
+  \newcommand{\blueit}[1]{\textcolor{bluebeamer}{\emph{#1}}}
+  \newcommand{\bluebold}[1]{\textcolor{bluebeamer}{\textbf{#1}}}
+  
+  % define some custom colours
+  \definecolor{okgreen}{HTML}{00CC99}
+  \definecolor{bad}{HTML}{FF5050}
+  \definecolor{bluebeamer}{HTML}{3333B3}
+  \usepackage{xcolor} % for other colours
+  
+  \captionsetup{labelformat=empty, justification=centering}
+  
+  % for displaying section slides (with center alignment)
+  \AtBeginSection[]{ 
+    \begin{frame}[c]
+    \centering
+    \Large\insertsectionhead
+    \end{frame}
+  }
+  
+  % for grey background behind in-line R code
+  \let\oldtexttt\texttt
+  \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+editor_options:
+  chunk_output_type: console
+---
+
+```{r}
+#| label: setup
+## load packages
+start <- Sys.time() # for recording duration
+library(tidyverse)
+library(geomtextpath)
+
+## set tibble sizes via pillar
+options(width = 90, pillar.width = 90,
+        pillar.print_min = 3, pillar.print_max = 3)
+
+## set output text size
+knitr::opts_chunk$set(size = "footnotesize")
+def.chunk.hook <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  if (!is.null(options$size) && options$size != "normalsize") {
+    paste0("\n\\", options$size, "\n\n", x, "\n\n\\normalsize")
+  } else {
+    x
+  }
+})
+
+## set base size in ggplot2
+theme_set(theme_classic(base_size = 30))
+
+## counter for practice slides, to be called with `r next_practice()`
+practice_counter <- 0
+next_practice <- function(counter = NULL) {
+  if (!is.null(counter)) 
+      practice_counter <<- counter
+  else
+    practice_counter <<- practice_counter + 1
+  practice_counter
+}
+```
+# Introduction
+
+
+# Questions? {.unnumbered}
+
+## {.c}
+\centering
+\Large Questions?
+
+
+# Developer corner {.unnumbered}
+
+## {.c}
+\centering
+\Large Developer corner
+
+
+## Ignore this slide --- (technical info for Alex)
+
+```{r}
+#| echo: false
+#| size: "tiny"
+options(width = 130)
+duration_min <- round(as.numeric(difftime(Sys.time(), start, units = "min")), digits = 1)
+paste(duration_min, "min of R running time")
+print(sessionInfo(), locale = FALSE, tzone = FALSE)
+```
