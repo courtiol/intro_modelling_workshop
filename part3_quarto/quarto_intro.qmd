@@ -71,7 +71,7 @@ Reproducibility is best seen as a continuum within a multidimensional space:
 - **accessibility**: can others find and download the exact data and code used?
 - **compatibility**: can they run the code on a different computer/OS today?
 - **sustainability**: will the code still run in X years after package updates?
-- **generalizability**: can the code be applied to a new, similar dataset?
+- **generalisability**: can the code be applied to a new, similar dataset?
 
 . . .
 
@@ -80,7 +80,7 @@ Reproducibility is best seen as a continuum within a multidimensional space:
 **NB:**
 
 - names are my own (many synonymous exist)
-- improving any dimension takes intentional time/effort and introduce trade-offs (e.g. improving generalizability decreases clarity)
+- improving any dimension takes intentional time/effort and introduce trade-offs (e.g. improving generalisability decreases clarity)
 - in this very short introduction, I focus on **repeatability**
 
 
@@ -98,7 +98,7 @@ Given that reproducibility comes at a cost, the main question to answer is:
 
   - [x] yourself right now
   - [ ] yourself in the near future (e.g. writing the paper)
-  - [ ] yourself in the distant future (e.g. analyzing similar data)
+  - [ ] yourself in the distant future (e.g. analysing similar data)
 
 . . .
 
@@ -309,7 +309,7 @@ species_count |> filter(year == 2025)
 - **accessibility**: host your data and code on platforms such as GitHub, Zenodo, ...
 - **compatibility**: make sure to try your code on other computers
 - **sustainability**: minimize external dependencies; at minima document package version using `sessionInfo()`, or better use systems such as {renv} which save and load specific versions of R packages; for longer sustainability learn how to build containers (e.g. docker)
-- **generalizability**: design functions, do not hardcode parameters, do not use indices
+- **generalisability**: design functions, do not hardcode parameters, do not use indices
 :::
 
 . . .
