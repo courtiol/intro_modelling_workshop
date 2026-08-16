@@ -54,7 +54,7 @@ Observation: the ability of LLMs to parse code-based slides (Quarto) rather than
 This course uses the Quarto/Beamer combination to generate PDF slides. 
 
 **Reflections**
-While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX. This resulted in a "polyglot" mix of YAML, Markdown, CSS, and LaTeX, which can lead to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
+While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX. This resulted in a "polyglot" mix of YAML, Markdown and LaTeX, which can lead to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
 
 **LaTeX Packages used:**
 `caption`, `textpos`, `xcolor`, `colortbl`, `makecell`, `tcolorbox`, `etoolbox`, `forest`, `amssymb`.
