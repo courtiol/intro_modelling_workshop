@@ -35,6 +35,7 @@ Here is a short synthesis of my notes. For more details, see: NOTES.md
 ### Rendering the Slides
 
 The main folders contain the Quarto documents (`.qmd` files) used to generate each PDF.
+
 You will need additional packages to render them:
 
 ```r
@@ -42,26 +43,19 @@ install.packages(c("quarto", "knitr", "kableExtra"))
 ```
 
 ### LLM Usage Disclosure
-I did not use LLMs to produce slides or R content from scratch. Claude Sonnet 3.5 and Gemma 4 were used for:
-- converting LibreOffice slides to Quarto (text extraction).
-- troubleshooting Quarto/LaTeX formatting issues.
-- content review (checking for typos, statistical inaccuracies, and conceptual gaps).
+I did not use LLMs to produce slides or R content from scratch.
 
-Observation: the ability of LLMs to parse code-based slides (Quarto) rather than XML-heavy formats (PowerPoint) significantly improves the quality of the review process.
+Claude Sonnet 3.5 and Gemma 4 were used for:
+
+- converting LibreOffice slides to Quarto (text extraction)
+- troubleshooting Quarto/LaTeX formatting issues
+- content review (checking for typos, statistical inaccuracies, and conceptual gaps)
 
 ### Toolchain & Pain Points
 
-**Stack**
-This course uses the Quarto/Beamer combination to generate PDF slides. 
-
-**Reflections**
-While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX. This resulted in a "polyglot" mix of YAML, Markdown and LaTeX, which can lead to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
-
-**LaTeX Packages used:**
+I used the Quarto/Beamer combination to generate PDF slides.
+While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX.
+This resulted in a "polyglot" mix of YAML, Markdown and LaTeX, which often led to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
+So I spent a lot of time debugging LaTeX compilation failure for an output not as beautiful HTML ioslides despite more formatting effort put into it.
+For rendering the Quarto files, you will need as least the following LaTeX packages:
 `caption`, `textpos`, `xcolor`, `colortbl`, `makecell`, `tcolorbox`, `etoolbox`, `forest`, `amssymb`.
-
-On Fedora, those can be installed as:
-
-```bash
-sudo dnf install texlive-xxx  # replace xxx with package name
-```
