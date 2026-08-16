@@ -328,4 +328,8 @@ species_count |> filter(year == 2025)
 - many of these improvements can be achieved at minimal costs
 - remember that repeatability is a continuum (e.g. the more generalizable the code one wants, the more effort one must put into creating the code)
 
-# Questions? {.unnumbered .unlisted}
+# Questions? {.unnumbered}
+
+## {.c}
+\centering
+\Large Questions?

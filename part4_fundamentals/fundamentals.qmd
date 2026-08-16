@@ -3371,16 +3371,25 @@ mcmc_trace(results_nimb_d)
 \end{figure}
 \end{center}
 
-# Questions? {.unnumbered .unlisted}
 
-# Developer corner {.unnumbered .unlisted}
+# Questions? {.unnumbered}
+
+## {.c}
+\centering
+\Large Questions?
+
+# Developer corner {.unnumbered}
+
+## {.c}
+\centering
+\Large Developer corner
 
 ## Ignore this slide --- (technical info for Alex)
 
 ```{r}
 #| echo: false
 #| size: "tiny"
-options(width = 140)
+options(width = 130)
 duration_min <- round(as.numeric(difftime(Sys.time(), start, units = "min")), digits = 1)
 paste(duration_min, "min of R running time")
 print(sessionInfo(), locale = FALSE, tzone = FALSE)
