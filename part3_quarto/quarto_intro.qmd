@@ -173,7 +173,7 @@ knitr::kable(df, booktabs = TRUE, align = "lccc") |>
 It is defined as an "open-source scientific and technical publishing system"
 
 ```{r}
-#| out-height: "10cm"
+#| out-height: 10cm
 #| fig-align: center
 knitr::include_graphics("figures/rstudio-qmd-how-it-works.png", dpi = NA) # dpi = NA fix aspect ratio issue
 ```
@@ -185,7 +185,7 @@ knitr::include_graphics("figures/rstudio-qmd-how-it-works.png", dpi = NA) # dpi 
 ## Key structure
 
 1. a header defining the general properties of the document, in YAML format
-2. text in markdown, html, or LaTeX
+2. body of text in markdown, html, or LaTeX
 3. chunks of computer code
 
 
@@ -243,10 +243,11 @@ The header is a particularly fragile component
 
 - spacing matters
 - copy/pasting headers across documents usually leads to unattended changes
+- current version(s?) of RStudio sometimes delete lines from the headers automatically (bug)
 - much of the content must be tailored to the selected output format
 
 
-## The text
+## The body of text
 
 This is the easy part
 
@@ -254,7 +255,13 @@ This is the easy part
   (if the hierarchy is messed up it can be because a chunk is located at the highest level of the hierarchy)
 - use `*text*`, `**text**`, `***text***`, to create *text*, **text** & ***text***, respectively
 - use `[link_text](weblink)` to create hyperlinks
+- use `![Figure legend](path_to_figure/fig.png){height=Xcm}` to add a figure of Xcm in height*
 
+\vfill
+
+. . .
+
+\*\footnotesize to add figures, you can alternatively use HTML, LaTeX, or R commands. I prefer using the R command provided by {knitr} since it works well irrespective of the output format: inside a chunk of R code (see next slide), use `knitr::include_graphics("path_to_figure/fig.png")`; you can influence the formatting via chunk options (e.g. `#| out-height: Xcm`, `#| fig-align: center`)
 
 ## Chunks of R code
 
