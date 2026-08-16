@@ -24,7 +24,8 @@ To run the code, install the following R packages:
 
 ```r
 install.packages(c("tidyverse", "sf", "units", "geomtextpath", 
-                   "nimble", "posterior", "bayesplot", "spaMM"))
+                   "nimble", "brms", "posterior", "bayesplot",
+                   "spaMM"))
 ```
 
 ## Technical Notes & Development

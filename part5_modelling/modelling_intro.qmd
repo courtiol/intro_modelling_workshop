@@ -8,11 +8,10 @@ format:
        aspectratio: 169
        toc: true
        classoption: t
+fontsize: 10pt
 knitr:
   opts_chunk: 
     dev: cairo_pdf
-execute:
-  cache: false
 header-includes: |
   \setbeamertemplate{frametitle continuation}{}
   \setbeamertemplate{itemize items}[circle]
@@ -38,7 +37,7 @@ header-includes: |
   \usepackage{etoolbox}
   \usepackage{forest}
   \usepackage{amssymb}
-
+  
   % make the red boxes around important stuff
   \newtcolorbox{callout}{%
     colback=white, 
@@ -90,11 +89,11 @@ editor_options:
 ## load packages
 start <- Sys.time() # for recording duration
 library(tidyverse)
-library(geomtextpath)
+library(brms) # explicit call here since can be hidden by cache below
 
 ## set tibble sizes via pillar
 options(width = 90, pillar.width = 90,
-        pillar.print_min = 3, pillar.print_max = 3)
+        pillar.print_min = 5, pillar.print_max = 5)
 
 ## set output text size
 knitr::opts_chunk$set(size = "footnotesize")
@@ -115,13 +114,356 @@ theme_set(theme_classic(base_size = 30))
 practice_counter <- 0
 next_practice <- function(counter = NULL) {
   if (!is.null(counter)) 
-      practice_counter <<- counter
+    practice_counter <<- counter
   else
     practice_counter <<- practice_counter + 1
   practice_counter
 }
 ```
-# Introduction
+
+# Linear Models (LM)
+
+## LM --- what are models?
+
+\vfill
+
+\bluebold{What is a statistical model?}
+
+a \blueit{statistical model} is an approximate description of the \blueit{data generating process}
+
+. . .
+
+\vfill
+
+\bluebold{What is a linear model?}
+
+a data generating process produced by a \blueit{linear function}: the data are generated from a set of terms by multiplying each term by a constant (a model parameter) and summing them
+
+. . .
+
+\vfill
+
+**NB:** seeing models as data generating process is both conceptually and practically useful
+
+- it helps for understanding what model parameters mean
+- it helps for estimating statistical power
+- it helps for knowing how to test fitting procedure by simulation
+
+\vfill
+
+## LM --- notations of a LM: simple notation
+
+\vspace{1em}
+
+\begin{center}
+$y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$
+\end{center}
+
+. . .
+
+- $y_i$ = the response variable / dependent variable / observations to explain
+- $\beta_j$ = the model parameters / regression coefficients
+- $x_{j,i}$ = regressors / constants derived from the predictor variables (aka predictors for short)
+- $\epsilon_i$ = the errors / residual errors
+
+. . .
+
+\vspace{1em}
+
+**NB:**
+
+- this is the notation that biologists should use in their paper/thesis to describe their model
+- the regressors are sometimes directly given by the columns from your dataset (i.e. the predictors), but not always (more on that later)
+
+
+## LM --- notations of a LM: usual R notation
+
+\vspace{1em}
+
+`y ~ x_1 + x_2 + ... + x_p`
+
+\vspace{1em}
+
+**NB:**
+
+- the parameters and the error term are not written down
+
+
+## LM --- notations of a LM: matrix notation
+
+\vspace{1em}
+
+\begin{center}
+$Y = X \beta + \epsilon$
+\end{center}
+
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} =
+\begin{bmatrix}
+1 & x_{1,1} & x_{1,2} & \dots & x_{1,p} \\
+1 & x_{2,1} & x_{2,2} & \dots & x_{2,p} \\
+1 & x_{3,1} & x_{3,2} & \dots & x_{3,p} \\
+\dots & \dots & \dots & \dots & \dots \\
+1 & x_{n,1} & x_{n,2} & \dots & x_{n,p}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \dots \\ \beta_p
+\end{bmatrix} +
+\begin{bmatrix}
+\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \dots \\ \epsilon_n
+\end{bmatrix}
+$$
+
+. . .
+
+- $Y$ = the vector of observations
+- $X$ = a matrix called the design (or model) matrix
+- $\beta$ = the vector of model parameters
+- $\epsilon$ = the vector of errors
+
+\vspace{1em}
+
+**NB:** this is the notation for statisticians and computer scientists, which is sometimes used to code Bayesian models
+
+
+## LM --- data generating process
+<!-- Emerald Lion is an anagram to linear model -->
+
+Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generate data
+
+. . .
+
+\bluenorm{Emerald Lion} (a goddess) informed us that she grows aliens of a certain size as follows:
+
+```{=latex}
+\begin{equation*}
+\begin{cases}
+\text{size}_i = 50 + 1.5 \times \text{humans\_eaten}_{i} + \epsilon_i \\
+\epsilon_i \sim \mathcal{N}(0, \sigma^2 = 4)
+\end{cases}
+\end{equation*}
+```
+
+. . .
+
+We can thus generate the size of 6 aliens that have eaten between 1 and 3 humans following E.L.'s recipe:
+
+```{r}
+#| label: alien data
+#| echo: true
+set.seed(123L)
+Alien <- tibble(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5,
+                error = rnorm(n = 6, mean = 0, sd = 2),
+                size = intercept + slope*humans_eaten + error)
+```
+
+. . . 
+
+**NB:** we could also write the last 2 lines as:
+
+```{r}
+#| label: alien data2
+#| echo: true
+#| eval: false
+size <- rnorm(n = 6, mean = intercept + slope*humans_eaten, sd = 2)
+```
+
+## LM --- data generating process
+
+\bluebold{Simulated data}
+```{r}
+#| label: alien study
+#| echo: true
+Alien
+```
+
+\textcolor{red}{can you recognise:}
+
+- the \blueit{model parameters}?
+- the \blueit{regressor} (here = predictor)?
+- the \blueit{errors}?
+- the \blueit{response variable}?
+
+
+## LM --- model fitting
+
+In practice, model parameters are unknown, so we have to estimate them\
+(that is the whole point of statistical modelling...)
+
+- in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data
+
+\vspace{1em}
+
+```{r}
+#| label: alien lm fake
+#| echo: true
+#| eval: false
+fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
+summary(fit_alien_lm)
+```
+
+```{r}
+#| label: alien lm real
+#| echo: false
+#| size: tiny
+fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
+summary(fit_alien_lm)
+```
+
+## LM --- model fitting
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+
+Let's first use {brms}, which is simpler than {nimble} but handle a smaller set of models:
+```{r}
+#| label: alien lm brms fake
+#| echo: true
+#| eval: false
+#| message: false
+library(brms) # Bayesian regression models using stan
+fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien)
+summary(fit_alien_lm_brms)
+```
+
+```{r}
+#| label: alien lm brms real
+#| echo: false
+#| message: false
+#| cache: true
+#| size: tiny
+library(brms) # Bayesian regression models using stan
+fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
+                         file = "cache_brms/fit_alien_lm_bayes") # to store the compiled model (quicker to rerun)
+summary(fit_alien_lm_brms)
+```
+
+## LM --- model fitting
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+
+\vspace{1em}
+
+Let's now use {nimble}:
+```{r}
+#| label: alien lm nimble prep
+#| echo: true
+#| size: scriptsize
+library(nimble)
+library(posterior)
+library(bayesplot)
+
+code <- nimbleCode({ 
+  # model mimicking the data generating process
+  for (i in seq_len(N)) {
+      size[i] ~ dnorm(mean = intercept + slope*humans_eaten[i], sd = sigma)
+  }
+  # prior
+  intercept ~ dnorm(mean = 0, sd = 100)
+  slope ~ dnorm(mean = 0, sd = 100)
+  sigma ~ dunif(min = 0, max = 100)
+})
+
+constants <- list(N = nrow(Alien),
+                  humans_eaten = Alien$humans_eaten)
+
+inits <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
+```
+
+## LM --- model fitting
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+
+\vspace{1em}
+
+```{r}
+#| label: alien lm nimble fit fake
+#| echo: true
+#| eval: false
+fit_alien_lm_nimb <- nimbleMCMC(code = code,
+                                constants = constants,
+                                data = list(size = Alien$size), # response goes here
+                                inits = inits)
+
+fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb) # to clean and check for real use
+summary(fit_alien_lm_nimb_d)
+```
+
+```{r}
+#| label: alien lm nimble fit real
+#| echo: false
+#| cache: true
+#| size: tiny
+fit_alien_lm_nimb <- nimbleMCMC(code = code,
+                                constants = constants,
+                                data = list(size = Alien$size),
+                                inits = inits,
+                                nchains = 1,
+                                setSeed = 123,
+                                progressBar = FALSE)
+
+fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb)
+summary(fit_alien_lm_nimb_d)
+```
+
+**NB:** 
+
+- in real use, the predictor variables should be scaled (more on that soon) & the posteriors should be trimmed, thinned and checked
+
+
+## LM --- model fitting results
+
+Let's compare the results
+
+::: columns
+::: {.column width="50%"}
+`lm()`
+```{r}
+#| echo: false
+#| label: alien lm results
+#| size: scriptsize
+rbind(cbind(summary(fit_alien_lm)$coefficients,
+            confint(fit_alien_lm))[, -c(3:4)],
+      sigma = c(summary(fit_alien_lm)$sigma,
+                sqrt(fit_alien_lm$df.residual/2 * (2*summary(fit_alien_lm)$sigma^2/fit_alien_lm$df.residual)^2), #shape * scale^2
+                qgamma(p = c(0.025, 0.975),
+                       shape = fit_alien_lm$df.residual/2,
+                       scale = 2*summary(fit_alien_lm)$sigma^2/fit_alien_lm$df.residual))) |> 
+  as.data.frame() |> 
+  rownames_to_column(var = "Parameter") |> 
+  as_tibble()
+``` 
+`bmrs::bmr()`
+```{r}
+#| echo: false
+#| label: alien lm brms results
+#| size: scriptsize
+rbind(fixef(fit_alien_lm_brms),
+      sigma = as.data.frame(VarCorr(fit_alien_lm_brms)[[1]][[1]])) |> 
+  as.data.frame() |> 
+  rownames_to_column(var = "Parameter") |> 
+  as_tibble()
+```
+`nimble::nimbleMCMC()`
+```{r}
+#| echo: false
+#| label: alien lm nimble results
+#| size: scriptsize
+summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.025, 0.975)))[c(1, 3, 2), ]
+```
+:::
+
+. . .
+
+::: {.column width="50%"}
+::: {.incremental}
+- we never obtained $50$ (intercept), $1.5$ (slope), or $2$ (sigma) because a sample is unlikely to reflect perfectly the population-level values; only $N=\infty$ or talking to the goddess could get you those
+- despite large uncertainties ($N=6$) the methods are rather consistent and not too far off
+- in `lm()` $\hat{\sigma}$ is usually not considered as a true parameter, it is deduced once the intercept and slope(s) have been fitted (and behind the scene I struggled to compute the SE and CI for it)
+- by default {nimble} returns q5 and q95 (not q2.5 and q97.5), so I had to request this manually (see `?summarise_draws`)
+:::
+:::
+:::
+
 
 
 # Questions? {.unnumbered}
