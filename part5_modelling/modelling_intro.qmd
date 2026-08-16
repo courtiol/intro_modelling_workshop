@@ -119,6 +119,9 @@ next_practice <- function(counter = NULL) {
     practice_counter <<- practice_counter + 1
   practice_counter
 }
+
+## create cache folder for bmrs
+if (!dir.exists("cache_brms")) dir.create("cache_brms")
 ```
 
 # Linear Models (LM)
@@ -229,7 +232,7 @@ $$
 ## LM --- data generating process
 <!-- Emerald Lion is an anagram to linear model -->
 
-Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generate data
+Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generates data
 
 . . .
 
@@ -246,14 +249,17 @@ Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the w
 
 . . .
 
-We can thus generate the size of 6 aliens that have eaten between 1 and 3 humans following E.L.'s recipe:
+We can thus generate the size of 10 aliens that have eaten humans following E.L.'s recipe\
+(we assume that the number of humans eaten follows a Poisson with $\lambda = 3$):
 
 ```{r}
 #| label: alien data
 #| echo: true
 set.seed(123L)
-Alien <- tibble(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5,
-                error = rnorm(n = 6, mean = 0, sd = 2),
+N <- 10
+Alien <- tibble(humans_eaten = rpois(N, lambda = 3), # any alternative would do 
+                intercept = 50, slope = 1.5,
+                error = rnorm(n = N, mean = 0, sd = 2), # must be rnorm!
                 size = intercept + slope*humans_eaten + error)
 ```
 
@@ -265,7 +271,7 @@ Alien <- tibble(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5,
 #| label: alien data2
 #| echo: true
 #| eval: false
-size <- rnorm(n = 6, mean = intercept + slope*humans_eaten, sd = 2)
+size <- rnorm(n = 10, mean = intercept + slope*humans_eaten, sd = 2)
 ```
 
 ## LM --- data generating process
@@ -314,7 +320,7 @@ summary(fit_alien_lm)
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
-Let's first use {brms}, which is simpler than {nimble} but handle a smaller set of models:
+Let's first use {brms}, which is simpler than {nimble} but handles a smaller set of models:
 ```{r}
 #| label: alien lm brms fake
 #| echo: true
@@ -325,6 +331,14 @@ fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien)
 summary(fit_alien_lm_brms)
 ```
 
+```{=html}
+<!~~
+if compilation errors occur on the slide (e.g. cmath: No such file or directory),
+try running the block below before rendering,
+delete the knitr cache and re-render
+~~>
+```
+
 ```{r}
 #| label: alien lm brms real
 #| echo: false
@@ -333,15 +347,14 @@ summary(fit_alien_lm_brms)
 #| size: tiny
 library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
-                         file = "cache_brms/fit_alien_lm_bayes") # to store the compiled model (quicker to rerun)
+                         seed = 123,
+                         file = "cache_brms/fit_alien_lm_bmrs") # to store the compiled model (quicker to rerun)
 summary(fit_alien_lm_brms)
 ```
 
 ## LM --- model fitting
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
-
-\vspace{1em}
 
 Let's now use {nimble}:
 ```{r}
@@ -358,8 +371,8 @@ code <- nimbleCode({
       size[i] ~ dnorm(mean = intercept + slope*humans_eaten[i], sd = sigma)
   }
   # prior
-  intercept ~ dnorm(mean = 0, sd = 100)
-  slope ~ dnorm(mean = 0, sd = 100)
+  intercept ~ dnorm(mean = 50, sd = 20)
+  slope ~ dnorm(mean = 0, sd = 10)
   sigma ~ dunif(min = 0, max = 100)
 })
 
@@ -368,6 +381,66 @@ constants <- list(N = nrow(Alien),
 
 inits <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
 ```
+
+## LM --- model fitting
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+
+Before fitting the model, let's make sure our priors for the intercept and slope are not too vague
+
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| eval: false
+set.seed(123)
+n_sims <- 100
+prior_intercept <- rnorm(n_sims, mean = 50, sd = 20) 
+prior_slope <- rnorm(n_sims, mean = 0, sd = 10)
+humans_eaten_possible <-
+  min(Alien$humans_eaten):max(Alien$humans_eaten)
+
+expand_grid(sim = seq_len(n_sims),
+            humans_eaten = humans_eaten_possible) |>
+  mutate(size = prior_intercept[sim] +
+           prior_slope[sim] * humans_eaten) -> prior_pred
+
+ggplot(prior_pred, aes(humans_eaten, size)) +
+  geom_line(aes(group = sim), linewidth = 0.1) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(aes(group = NULL), data = Alien)
+```
+:::
+::: {.column width="40%"}
+```{r}
+#| echo: false
+#| out-width: 0.9\linewidth
+#| fig-align: center
+set.seed(123)
+n_sims <- 100
+prior_intercept <- rnorm(n_sims, mean = 50, sd = 20) 
+prior_slope <- rnorm(n_sims, mean = 0, sd = 10)
+humans_eaten_possible <-
+  min(Alien$humans_eaten):max(Alien$humans_eaten)
+
+expand_grid(sim = seq_len(n_sims),
+            humans_eaten = humans_eaten_possible) |>
+  mutate(size = prior_intercept[sim] +
+           prior_slope[sim] * humans_eaten) -> prior_pred
+
+ggplot(prior_pred, aes(humans_eaten, size)) +
+  geom_line(aes(group = sim), linewidth = 0.1) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(aes(group = NULL), data = Alien)
+```
+
+. . .
+
+- this looks good: not too many silly sizes and yet wide enough to cover a wide range of slopes
+- scaling the data would improve things (more on that soon) 
+:::
+:::
+
 
 ## LM --- model fitting
 
@@ -432,7 +505,7 @@ rbind(cbind(summary(fit_alien_lm)$coefficients,
   rownames_to_column(var = "Parameter") |> 
   as_tibble()
 ``` 
-`bmrs::bmr()`
+`brms::brm()`
 ```{r}
 #| echo: false
 #| label: alien lm brms results
@@ -456,14 +529,15 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 
 ::: {.column width="50%"}
 ::: {.incremental}
-- we never obtained $50$ (intercept), $1.5$ (slope), or $2$ (sigma) because a sample is unlikely to reflect perfectly the population-level values; only $N=\infty$ or talking to the goddess could get you those
-- despite large uncertainties ($N=6$) the methods are rather consistent and not too far off
-- in `lm()` $\hat{\sigma}$ is usually not considered as a true parameter, it is deduced once the intercept and slope(s) have been fitted (and behind the scene I struggled to compute the SE and CI for it)
+- we never obtained $50$ (intercept), $1.5$ (slope), or $2$ (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
+- despite large uncertainties (`{r} paste("N=", N)`) the methods are rather consistent and not too far off
+- in `lm()` $\hat{\sigma}$ is usually not a parameter that is estimated directly, it is deduced once the intercept and slope(s) have been fitted (behind the scenes I struggled to compute the SE and CI for it)
 - by default {nimble} returns q5 and q95 (not q2.5 and q97.5), so I had to request this manually (see `?summarise_draws`)
 :::
 :::
 :::
 
+## Practice `r next_practice()`
 
 
 # Questions? {.unnumbered}
