@@ -124,9 +124,9 @@ next_practice <- function(counter = NULL) {
 if (!dir.exists("cache_brms")) dir.create("cache_brms")
 ```
 
-# Linear Models (LM)
+# Linear Models introduction (LM)
 
-## LM --- what are models?
+## LM intro --- what are models?
 
 \vfill
 
@@ -154,7 +154,7 @@ a data generating process produced by a \blueit{linear function}: the data are g
 
 \vfill
 
-## LM --- notations of a LM: simple notation
+## LM intro --- notations of a LM: simple notation
 
 \vspace{1em}
 
@@ -179,7 +179,7 @@ $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta
 - the regressors are sometimes directly given by the columns from your dataset (i.e. the predictors), but not always (more on that later)
 
 
-## LM --- notations of a LM: usual R notation
+## LM intro --- notations of a LM: usual R notation
 
 \vspace{1em}
 
@@ -192,7 +192,7 @@ $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta
 - the parameters and the error term are not written down
 
 
-## LM --- notations of a LM: matrix notation
+## LM intro --- notations of a LM: matrix notation
 
 \vspace{1em}
 
@@ -229,7 +229,7 @@ $$
 **NB:** this is the notation for statisticians and computer scientists, which is sometimes used to code Bayesian models
 
 
-## LM --- data generating process
+## LM intro --- data generating process
 <!-- Emerald Lion is an anagram to linear model -->
 
 Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generates data
@@ -274,7 +274,7 @@ Alien <- tibble(humans_eaten = rpois(N, lambda = 3), # any alternative would do
 size <- rnorm(n = 10, mean = intercept + slope*humans_eaten, sd = 2)
 ```
 
-## LM --- data generating process
+## LM intro --- data generating process
 
 \bluebold{Simulated data}
 ```{r}
@@ -283,15 +283,16 @@ size <- rnorm(n = 10, mean = intercept + slope*humans_eaten, sd = 2)
 Alien
 ```
 
-\textcolor{red}{can you recognise:}
+- which columns show the \blueit{model parameters}?
+- which columns show \blueit{regressor} (here = predictor)?
+- which columns show \blueit{errors}?
+- which columns show \blueit{response variable}?
+- how the \blueit{response variable} is computed?
+- what would the \blueit{mean response value} be, for an alien who does not eat humans?
+- what would the \blueit{mean response value} be, for an alien who eats 2 humans?
 
-- the \blueit{model parameters}?
-- the \blueit{regressor} (here = predictor)?
-- the \blueit{errors}?
-- the \blueit{response variable}?
 
-
-## LM --- model fitting
+## LM intro --- model fitting
 
 In practice, model parameters are unknown, so we have to estimate them\
 (that is the whole point of statistical modelling...)
@@ -316,7 +317,7 @@ fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
 summary(fit_alien_lm)
 ```
 
-## LM --- model fitting
+## LM intro --- model fitting
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -352,7 +353,7 @@ fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
 summary(fit_alien_lm_brms)
 ```
 
-## LM --- model fitting
+## LM intro --- model fitting
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -382,14 +383,14 @@ constants <- list(N = nrow(Alien),
 inits <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
 ```
 
-## LM --- model fitting
+## LM intro --- model fitting
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
 Before fitting the model, let's make sure our priors for the intercept and slope are not too vague
 
 ::: columns
-::: {.column width="60%"}
+::: {.column width="65%"}
 ```{r}
 #| echo: true
 #| eval: false
@@ -411,7 +412,7 @@ ggplot(prior_pred, aes(humans_eaten, size)) +
   geom_point(aes(group = NULL), data = Alien)
 ```
 :::
-::: {.column width="40%"}
+::: {.column width="35%"}
 ```{r}
 #| echo: false
 #| out-width: 0.9\linewidth
@@ -442,7 +443,7 @@ ggplot(prior_pred, aes(humans_eaten, size)) +
 :::
 
 
-## LM --- model fitting
+## LM intro --- model fitting
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -483,7 +484,7 @@ summary(fit_alien_lm_nimb_d)
 - in real use, the predictor variables should be scaled (more on that soon) & the posteriors should be trimmed, thinned and checked
 
 
-## LM --- model fitting results
+## LM intro --- model fitting results
 
 Let's compare the results
 
@@ -539,6 +540,289 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 
 ## Practice `r next_practice()`
 
+- using the `penguins` dataset (readily available in R), fit a linear model with:
+  - `body_mass` as the response variables
+  - `flipper_len` as predictors
+
+. . . 
+
+\vfill
+
+**NB:** do not forget to clean and plot the dataset
+
+```{r}
+#| echo: true
+#| label: penguins2
+#| out-width: 4cm
+#| fig-align: center
+penguins |> 
+  drop_na(body_mass, flipper_len) -> penguins2
+
+ggplot(penguins2) +
+  geom_point(aes(y = body_mass, x = flipper_len))
+```
+
+# Interpreting coefficients
+
+## Interpreting coefficients --- intercept and slopes
+
+\textcolor{red}{How to interpret the regression coefficients?}
+
+```{r}
+#| echo: true
+#| label: fit flipper
+fit_flipper <- lm(body_mass ~ flipper_len, data = penguins2)
+coef(fit_flipper)
+```
+
+. . .
+
+- the \blueit{intercept} is the predicted response when all regressors are at 0
+```{r}
+#| echo: true
+#| label: fit flipper interpretation int
+predict(fit_flipper, newdata = list(flipper_len = 0))
+```
+
+## Interpreting coefficients --- intercept and slopes
+
+\textcolor{red}{How to interpret the regression coefficients?}
+
+```{r}
+#| echo: true
+#| label: fit flipper bis
+fit_flipper <- lm(body_mass ~ flipper_len, data = penguins2)
+coef(fit_flipper)
+```
+
+- a \blueit{slope} gives the change in predicted response when its associated regressor increases by 1 unit (here 1 mm)
+```{r}
+#| echo: true
+#| label: fit flipper interpretation slope
+pred_diff <- predict(fit_flipper, newdata = list(flipper_len = c(200, 201)))
+pred_diff
+pred_diff[2] - pred_diff[1] # or simply diff(pred_diff)
+```
+
+
+## Interpreting coefficients --- scaling predictors
+
+\textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
+
+\blueit{scaling} means removing the mean (i.e. \blueit{centering}) and divide by the SD (i.e. \blueit{standardising}), i.e. it means transforming the variable into \blueit{z-scores}
+```{r}
+#| echo: true
+#| label: prep flipper scaled
+penguins2 |> 
+  mutate(flipper_len_z = scale(flipper_len)) -> penguins3
+```
+
+**NB:** 
+
+- scaling both the response variable and the predictors is a recommended practice when using {nimble}, {stan}, etc... since it makes the definition of priors more consistent across studies; it also improves the efficiency of some MCMC samplers considerably since it decreases correlations between posteriors
+- some packages do similar things internally (e.g. {brms}), while doing themselves the necessary \blueit{back transformation} for allowing interpretations at the original scales
+
+
+
+## Interpreting coefficients --- scaling predictors
+
+\textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
+```{r}
+#| echo: true
+#| label: fit flipper scaled
+fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins3)
+coef(fit_flipper_z)
+```
+
+. . .
+
+- the \blueit{intercept} remains the predicted response when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length (i.e. `mean(penguins3$flipper_len)` = `{r} round(mean(penguins3$flipper_len), 1)` mm)
+
+
+## Interpreting coefficients --- scaling predictors
+
+\textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
+```{r}
+#| echo: true
+#| label: fit flipper scaled 2
+fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins3)
+coef(fit_flipper_z)
+```
+
+- a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length (i.e. `sd(penguins3$flipper_len)` = `{r} round(sd(penguins3$flipper_len), 1)` mm)
+
+\bluebold{back transformation}
+
+```{r}
+#| echo: true
+#| label: equivalence flip
+coef(fit_flipper_z)["flipper_len_z"] / sd(penguins3$flipper_len)
+```
+
+
+## Interpreting coefficients --- scaling the response
+
+\textcolor{red}{How to interpret the regression coefficients when the response is scaled?}
+
+```{r}
+#| echo: true
+#| label: prep body mass scaled
+penguins3 |> 
+  mutate(body_mass_z = scale(body_mass)) -> penguins4
+```
+
+```{r}
+#| echo: true
+#| label: fit body mass scaled
+fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins4)
+coef(fit_flipper_bmz)
+```
+
+- again, the \blueit{intercept} remains the predicted response when all regressors are at 0, and a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but this time the response is expressed in SDs above the mean (i.e. z-scores) rather than grams
+
+## Interpreting coefficients --- scaling the response
+
+\textcolor{red}{How to interpret the regression coefficients when the response is scaled?}
+
+```{r}
+#| echo: true
+#| label: prep body mass scaled 2
+penguins3 |> 
+  mutate(body_mass_z = scale(body_mass)) -> penguins4
+```
+
+```{r}
+#| echo: true
+#| label: fit body mass scaled 2
+fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins4)
+coef(fit_flipper_bmz)
+```
+
+\bluebold{back transformation}
+
+```{r}
+#| echo: true
+#| label: equivalence flip bm
+coef(fit_flipper_bmz)["(Intercept)"] * sd(penguins4$body_mass) + mean(penguins4$body_mass)
+
+coef(fit_flipper_bmz)["flipper_len"] * sd(penguins4$body_mass)
+```
+
+## Practice `r next_practice()`
+
+\textcolor{red}{How to interpret the regression coefficients when the response and predictors are scaled?}
+
+```{r}
+#| echo: true
+#| label: fit all scaled
+fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins4)
+coef(fit_flipper_zz)
+```
+
+1. interpret the slope on its new scale
+2. interpret the intercept on its new scale
+3. apply the required back transformation to perform the interpretation of the slope on the original scale
+4. think about how you would define the priors in this case
+
+
+## Solution
+
+\textcolor{red}{How to interpret the regression coefficients when the response and predictors are scaled?}
+
+```{r}
+#| echo: true
+#| label: fit all scaled 2
+fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins4)
+coef(fit_flipper_zz)
+```
+
+1. the slope describes the increase in SD of body mass for an increase of 1 SD in flipper length
+2. the intercept is the mean scaled value of the body mass for a penguin with average flipper length, which is why it is 0
+3. back transformation of the slope:
+
+```{r}
+#| echo: true
+#| label: fit all scaled solution
+(coef(fit_flipper_zz)["flipper_len_z"] / sd(penguins4$flipper_len)) * sd(penguins4$body_mass)
+```
+
+## Solution
+
+4. $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope seems appropriate
+
+::: columns
+::: {.column width="65%"}
+```{r}
+#| label: prior test z fake
+#| echo: true
+#| eval: false
+set.seed(123)
+n_sims <- 100
+prior_intercept <- rnorm(n_sims, mean = 0, sd = 2) 
+prior_slope <- rnorm(n_sims, mean = 0, sd = 2)
+flipper_z <- -3:3
+
+expand_grid(sim = seq_len(n_sims),
+            flipper_len_z = flipper_z) |>
+  mutate(body_mass_z = prior_intercept[sim] +
+           prior_slope[sim] * flipper_len_z) -> prior_pred
+
+ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
+  geom_line(aes(group = sim), linewidth = 0.1) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(aes(group = NULL), data = penguins4)
+```
+:::
+::: {.column width="35%"}
+```{r}
+#| label: prior test z real
+#| echo: false
+#| eval: true
+#| out-width: 0.9\linewidth
+#| fig-align: center
+set.seed(123)
+n_sims <- 100
+prior_intercept <- rnorm(n_sims, mean = 0, sd = 2) 
+prior_slope <- rnorm(n_sims, mean = 0, sd = 2)
+flipper_z <- -3:3
+
+expand_grid(sim = seq_len(n_sims),
+            flipper_len_z = flipper_z) |>
+  mutate(body_mass_z = prior_intercept[sim] +
+           prior_slope[sim] * flipper_len_z) -> prior_pred
+
+ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
+  geom_line(aes(group = sim), linewidth = 0.1) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(aes(group = NULL), data = penguins4)
+```
+:::
+:::
+
+
+
+## Interpreting coefficients --- qualitative predictors
+
+\textcolor{red}{How to interpret the regression coefficients?}
+
+```{r}
+#| echo: true
+#| label: fit sex
+fit_sex <- lm(body_mass ~ sex, data = penguins)
+coef(fit_sex)
+```
+
+
+
+## co plots
+
+```{r}
+#| label: coplot intro
+#| echo: true
+#| out-width: 3cm
+#| fig-align: center
+coplot(body_mass ~ flipper_len | species + sex, panel = panel.smooth, data = penguins2)
+```
 
 # Questions? {.unnumbered}
 
