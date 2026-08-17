@@ -2929,7 +2929,7 @@ Algorithmic steps:
 \item<1-> define a prior distribution
 \item<2-> initialise a \blueit{chain} (a vector) with a starting parameter value $\theta$
 \item<3-> propose a new parameter value $\theta'$ by adding a small random jump to the current $\theta$
-\item<4-> accept $\theta'$ with a probability defined by the minimum between 1 and the ratio of the posterior densities $\dfrac{\mathrm{posterior}(\theta')}{\mathrm{posterior}(\theta)}$
+\item<4-> accept $\theta'$ if it increases the posterior density, otherwise accept it with a probability defined by the ratio of the posterior densities (i.e. $\dfrac{\mathrm{posterior}(\theta')}{\mathrm{posterior}(\theta)}$)
 \item<5-> if $\theta'$ is accepted, add it to the chain, otherwise add $\theta$ again
 \item<6-> repeat steps 3--5 until the chain reaches the target size
 \item<7-> drop the beginning of the chain (i.e. the \blueit{burn-in}) to remove the influence of starting values
@@ -2953,13 +2953,14 @@ Algorithmic steps:
 
 - the maximisation required in frequentist statistics to obtain point estimates is here replaced by a characterisation of the posterior distributions
 - this is possible because the algorithm does not require computing the normalising constant of the posterior\
-(the denominators of $\mathrm{posterior}(\theta')$ and $\mathrm{posterior}(\theta)$ are identical and cancel out in the ratio)
+(the denominators of $\mathrm{posterior}(\theta')$ and $\mathrm{posterior}(\theta)$ cancel out in the ratio)
 - this feature applies to many MCMC samplers and explain the success of Bayesian statistics in Ecology & Conservation
 
 
 ## Bayesian statistics --- Metropolis algorithm (application)
 
-Let's use the Metropolis algorithm to estimate the mean and SD of petal length of\\ \emph{Iris versicolor}
+Let's use the Metropolis algorithm to estimate the mean and SD of petal length of\
+\emph{Iris versicolor}
 
 ::: columns
 ::: {.column width="50%"}
@@ -3007,7 +3008,7 @@ my_prior_sd <- function(sd, log = TRUE) {
         log = log)
 }
 
-my_prior <- function(param) {
+my_logPrior <- function(param) {
   my_prior_mu(mu = param[1], log = TRUE) + 
     my_prior_sd(sd = param[2], log = TRUE)
 }
@@ -3071,17 +3072,17 @@ my_logLik(c(5, 0.51))
 ::: {.column width="50%"}
 ```{r}
 #| echo: true
-my_posterior_log <- function(param) {
+my_logPosterior <- function(param) {
     # adding logs = multiplying originals
-    my_logLik(param) + my_prior(param)
+    my_logLik(param) + my_logPrior(param)
 }
 ```
 :::
 ::: {.column width="50%"}
 ```{r}
 #| echo: true
-my_posterior_log(c(5, 0.5))
-my_posterior_log(c(5, 0.51))
+my_logPosterior(c(5, 0.5))
+my_logPosterior(c(5, 0.51))
 ```
 :::
 :::
@@ -3123,8 +3124,8 @@ my_MCMC <- function(chain_length = 9999, starting_values = c(5, 0.1)) {
     chain[1, ] <- starting_values # add starting values
     for (i in seq_len(chain_length)) {
         param_candidate <- my_proposal(chain[i, ])
-        proba_accept <- exp(my_posterior_log(param_candidate) -
-                              my_posterior_log(chain[i, ]))
+        proba_accept <- exp(my_logPosterior(param_candidate) -
+                              my_logPosterior(chain[i, ])) # = ratio of posterior densities
         if (runif(1) < proba_accept)
             chain[i + 1, ] <- param_candidate # new values accepted
         else
@@ -3187,7 +3188,7 @@ posterior_clean <- thin_draws(posterior_no_burnin, thin = 25)
 
 ## Bayesian statistics --- results
 
-Here are the results of our homemade posterior estimation:
+Here are the results of our homemade posterior approximations:
 
 ::: columns
 ::: {.column width="70%"}
@@ -3354,6 +3355,9 @@ Marc Kéry & Andy Royle, "Applied Hierarchical Modeling in Ecology"
 \includegraphics[height=0.3\textheight]{figures/whitlock_book.jpg}
 \includegraphics[height=0.3\textheight]{figures/mcelreath_book.jpg}
 \includegraphics[height=0.3\textheight]{figures/kruschke_book.jpg}
+\includegraphics[height=0.3\textheight]{figures/kery_kellner_book.jpg}
+\includegraphics[height=0.3\textheight]{figures/kery_royle_book1.jpg}
+\includegraphics[height=0.3\textheight]{figures/kery_royle_book2.jpg}
 \end{center}
 
 **NB:** 
