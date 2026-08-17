@@ -226,10 +226,10 @@ $$
 
 \vspace{1em}
 
-**NB:** this is the notation for statisticians and computer scientists, which is sometimes used to code Bayesian models
+**NB:** this is the notation for statisticians and computer scientists, which can also be useful to interpret coefficients
 
 
-## LM intro --- data generating process
+## LM intro --- data generating process: data simulation
 <!-- Emerald Lion is an anagram to linear model -->
 
 Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generates data
@@ -273,7 +273,7 @@ Alien <- tibble(humans_eaten = rep(1:3, each = 4), # alternative e.g. rpois() wo
 size <- rnorm(n = 12, mean = intercept + slope*humans_eaten, sd = 2)
 ```
 
-## LM intro --- data generating process
+## LM intro --- data generating process: data check
 
 \bluebold{Simulated data}
 ```{r}
@@ -291,12 +291,12 @@ Alien
 - what would the \blueit{mean response value} be, for an alien who eats 2 humans?
 
 
-## LM intro --- model fitting
+## LM intro --- model fitting: frequentist approach
 
-In practice, model parameters are unknown, so we have to estimate them\
+In practice, model parameters are \bluenorm{unknown}, so we have to estimate them\
 (that is the whole point of statistical modelling...)
 
-- in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data (in LM = minimising the sum of squared residuals)
+- in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data
 
 \vspace{1em}
 
@@ -305,7 +305,7 @@ In practice, model parameters are unknown, so we have to estimate them\
 #| echo: true
 #| eval: false
 fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
-summary(fit_alien_lm) # or coef(fit_alien_lm) for a focus on coefficients
+summary(fit_alien_lm) # or coef(fit_alien_lm) for a focus on coefficients only
 ```
 
 ```{r}
@@ -316,12 +316,193 @@ fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
 summary(fit_alien_lm)
 ```
 
-## LM intro --- vocabulary
+
+## LM intro --- model fitting: interlude on sum of squares
+
+In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
+
+To best illustrate this concept, we need data more spread out
+
+```{r}
+#| label: alien2 data
+#| echo: true
+#| size: scriptsize
+set.seed(123)
+Alien2 <- tibble(humans_eaten = 1:12, intercept = 50, slope = 1.5,
+                 size = rnorm(n = 12, mean = intercept + slope*humans_eaten, sd = 4))
+fit_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
+```
+
+. . .
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS plot
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| out-height: 4cm
+#| echo: false
+#| fig-cap: Residuals on best fit
+par(las = 1)
+pred <- fitted.values(fit_alien2_lm)
+resid <- residuals(fit_alien2_lm)
+plot(size ~ humans_eaten, data = Alien2, ylab = "Alien size (cm)", xlab = "No. of humans eaten", asp = 1)
+points(pred ~ humans_eaten, col = "blue", type = "o",
+       data = Alien2, pch = 20)
+with(Alien2, segments(x0 = humans_eaten, x1 = humans_eaten,
+                      y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"),
+       pch = c(1, 20),
+       legend = c("observation", "fitted value"))
+```
+:::
+
+. . .
+
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS plot2
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| out-height: 4cm
+#| echo: false
+#| fig-cap: Squared residuals on best fit
+par(las = 1)
+plot(size ~ humans_eaten,
+     data = Alien2,
+     ylab = "Alien size (cm)",
+     xlab = "No. of humans eaten",
+     asp = 1)
+points(pred ~ humans_eaten, col = "blue", type = "o",
+       data = Alien2, pch = 20)
+for (i in 1:nrow(Alien2)) {
+  with(Alien2, polygon(x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA))
+}
+with(Alien2, segments(x0 = humans_eaten, x1 = humans_eaten,
+                      y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n",
+       col = c("black", "blue"), pch = c(1, 20),
+       legend = c("observation", "fitted value"))
+text(-3.5, 65,
+     paste("RSS =", round(sum(fit_alien2_lm$resid^2), 1)),
+     col = "red")
+```
+:::
+:::
+
+## LM intro --- model fitting: interlude on sum of squares
+
+In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
+
+To best illustrate this concept, we need data more spread out
+
+```{r}
+#| label: alien2 data fake
+#| echo: true
+#| eval: false
+#| size: scriptsize
+set.seed(123)
+Alien2 <- tibble(humans_eaten = 1:12, intercept = 50, slope = 1.5,
+                 size = rnorm(n = 12, mean = intercept + slope*humans_eaten, sd = 4))
+fit_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
+```
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS bad fit plot
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| out-height: 4cm
+#| echo: false
+#| fig-cap: Squared residuals on bad fit
+par(las = 1)
+plot(size ~ humans_eaten,
+     data = Alien2,
+     ylab = "Alien size (cm)",
+     xlab = "No. of humans eaten",
+     asp = 1)
+badslope <- 0.5
+badintercept <- mean(Alien2$size) - badslope * mean(Alien2$humans_eaten)
+badpred <- badintercept + badslope * Alien2$humans_eaten
+badresid <- Alien2$size - badpred
+points(badpred ~ humans_eaten, col = "blue", type = "o",
+       data = Alien2, pch = 20)
+for (i in 1:nrow(Alien2)) {
+  with(Alien2, polygon(
+    x = c(humans_eaten[i],
+          humans_eaten[i],
+          humans_eaten[i] + abs(badresid[i]),
+          humans_eaten[i] + abs(badresid[i])),
+    y = c(badpred[i], size[i], size[i], badpred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA))
+}
+with(Alien2, segments(x0 = humans_eaten, x1 = humans_eaten,
+                      y0 = size, y1 = badpred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"),
+       pch = c(1, 20),
+       legend = c("observation", "fitted value"))
+text(-3.5, 65, paste("RSS =", round(sum(badresid^2), 1)),
+     col = "red")
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS plot3
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| out-height: 4cm
+#| echo: false
+#| fig-cap: Squared residuals on best fit
+par(las = 1)
+plot(size ~ humans_eaten,
+     data = Alien2,
+     ylab = "Alien size (cm)",
+     xlab = "No. of humans eaten",
+     asp = 1)
+points(pred ~ humans_eaten, col = "blue", type = "o",
+       data = Alien2, pch = 20)
+for (i in 1:nrow(Alien2)) {
+  with(Alien2, polygon(x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA))
+}
+with(Alien2, segments(x0 = humans_eaten, x1 = humans_eaten,
+                      y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n",
+       col = c("black", "blue"), pch = c(1, 20),
+       legend = c("observation", "fitted value"))
+text(-3.5, 65,
+     paste("RSS =", round(sum(fit_alien2_lm$resid^2), 1)),
+     col = "red")
+```
+:::
+:::
+
+## LM intro --- model fitting: fit vs ground truth
 
 ```{r}
 #| echo: true
-Alien |> 
-  mutate(mean_response_values = intercept + slope * humans_eaten,
+Alien |> # we are back to using our original data & fit!
+  mutate(mean_response_values = intercept + slope * humans_eaten, # truth in population
          fitted_values = fitted(fit_alien_lm), 
          residuals = residuals(fit_alien_lm)) -> Alien
 ```
@@ -464,65 +645,7 @@ ggplot(data = Alien) +
 :::
 
 
-## LM intro --- model fitting
-
-::: columns
-::: {.column width="50%"}
-```{r}
-#| label: alien RSS plot
-#| fig-align: center
-#| fig-asp: 1
-#| fig-width: 5
-#| echo: false
-#| fig-cap: Residuals on best fit
-par(las = 1)
-pred <- fitted.values(fit_alien_lm)
-resid <- residuals(fit_alien_lm)
-plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten", asp = 1)
-points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
-with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
-legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
-```
-:::
-::: {.column width="50%"}
-```{r}
-#| label: alien RSS plot2
-#| fig-align: center
-#| fig-asp: 1
-#| fig-width: 5
-#| echo: false
-#| fig-cap: Squared residuals on best fit
-par(las = 1)
-plot(
-  size ~ humans_eaten,
-  data = Alien,
-  ylab = "Alien size (cm)",
-  xlab = "No. of humans eaten",
-  asp = 1
-  )
-points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
-for (i in 1:nrow(Alien)) {
-  with(Alien, polygon(
-    x = c(
-    humans_eaten[i],
-    humans_eaten[i],
-    humans_eaten[i] + abs(resid[i]),
-    humans_eaten[i] + abs(resid[i])
-    ),
-    y = c(pred[i], size[i], size[i], pred[i]),
-    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
-    border = NA
-    ))
-}
-with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
-legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
-text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
-```
-:::
-:::
-
-
-## LM intro --- model fitting
+## LM intro --- model fitting: Bayesian approach with {brms}
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -557,7 +680,7 @@ fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
 summary(fit_alien_lm_brms)
 ```
 
-## LM intro --- model fitting
+## LM intro --- model fitting: Bayesian approach with {nimble}
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -587,7 +710,7 @@ constants <- list(N = nrow(Alien),
 inits <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
 ```
 
-## LM intro --- model fitting
+## LM intro --- model fitting: priors sanity check
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -608,7 +731,7 @@ humans_eaten_possible <-
 expand_grid(sim = seq_len(n_sims),
             humans_eaten = humans_eaten_possible) |>
   mutate(size = prior_intercept[sim] +
-           prior_slope[sim] * humans_eaten) -> prior_pred
+           prior_slope[sim]*humans_eaten) -> prior_pred
 
 ggplot(prior_pred, aes(humans_eaten, size)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -642,12 +765,12 @@ ggplot(prior_pred, aes(humans_eaten, size)) +
 . . .
 
 - this looks good: not too many silly sizes and yet wide enough to cover a wide range of slopes
-- scaling the data would improve things (more on that soon) 
+- scaling the data would improve things (see later) 
 :::
 :::
 
 
-## LM intro --- model fitting
+## LM intro --- model fitting: Bayesian approach with {nimble}
 
 - in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
 
@@ -662,7 +785,7 @@ fit_alien_lm_nimb <- nimbleMCMC(code = code,
                                 data = list(size = Alien$size), # response goes here
                                 inits = inits)
 
-fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb) # to clean and check for real use
+fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb)
 summary(fit_alien_lm_nimb_d)
 ```
 
@@ -683,12 +806,15 @@ fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb)
 summary(fit_alien_lm_nimb_d)
 ```
 
-**NB:** 
+. . .
 
-- in real use, the predictor variables should be scaled (more on that soon) & the posteriors should be trimmed, thinned and checked
+**NB:** for real applications
+
+- the predictor variables should be scaled (see later)
+- the posteriors should be trimmed, thinned and checked
 
 
-## LM intro --- model fitting results
+## LM intro --- model fitting results: estimates compared
 
 Let's compare the results
 
@@ -733,35 +859,40 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 . . .
 
 ::: {.column width="50%"}
-::: {.incremental}
-- we never obtained $50$ (intercept), $1.5$ (slope), or $2$ (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
-- despite large uncertainties (`{r} paste("N=", N)`) the methods are rather consistent and not too far off
-- in `lm()` $\hat{\sigma}$ is usually not a parameter that is estimated directly, it is deduced once the intercept and slope(s) have been fitted (behind the scenes I struggled to compute the SE and CI for it)
-- by default {nimble} returns q5 and q95 (not q2.5 and q97.5), so I had to request this manually (see `?summarise_draws`)
-:::
+\begin{footnotesize}
+\begin{itemize}
+\item<2-> we never obtained 50 (intercept), 1.5 (slope), or 2 (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
+\item<3-> despite the small samples size (`{r} paste0("N=", N)`) the estimates are in agreement and not too far from ground truth values
+\end{itemize}
+\pause
+\vspace{1em}
+\uncover<4->{\textbf{Geeky notes:}}
+\begin{itemize}
+\item<4-> in \verb`lm()` $\hat{\sigma}$ is usually not a parameter that is estimated directly, it is deduced once the intercept and slope(s) have been fitted (behind the scenes I struggled to compute the SE and CI for it)
+\item<5-> by default {nimble} returns q5 and q95 (not q2.5 and q97.5), so I had to request this manually (see \verb`?summarise_draws`)
+\end{itemize}
+\end{footnotesize}
 :::
 :::
 
 ## Practice `r next_practice()`
 
-- using the `penguins` dataset (readily available in R), fit a linear model with:
+1. explore the dataset `penguins` (readily available in R)
+2. do check its documentation `?penguins`
+3. using this dataset, fit a linear model with:
   - `body_mass` as the response variables
   - `flipper_len` as predictors
 
 
 # Interpreting coefficients
 
-## Interpreting coefficients --- data preparation
+## Interpreting coefficients --- data preparation: clean up
 
-Let's create a single clean dataset with all the variables we will need
+Let's create a single clean dataset with all the variables we will need for everything
 
 ```{r}
 #| echo: true
 #| label: penguins_clean
-penguins |> 
-  as_tibble() |>
-  filter(if_any(everything(), is.na))
-
 penguins |> 
   as_tibble() |> 
   select(-starts_with("bill")) |> 
@@ -772,13 +903,20 @@ penguins |>
 penguins_clean
 ```
 
-## Interpreting coefficients --- data preparation
+**NB:** `scale()` creates z-scores (it removes the mean and divide by the SD)
+
+
+## Interpreting coefficients --- data preparation: plot
 
 ```{r}
 #| echo: true
 #| label: penguins clean plot
+#| out-height: 5cm
+#| fig-align: center
 ggplot(penguins_clean) +
-  geom_point(aes(y = body_mass, x = flipper_len))
+  aes(y = body_mass, x = flipper_len, colour = species, shape = sex) +
+  geom_point(alpha = 0.5) +
+  labs(y = "Body mass (gr)", x = "Flipper length (mm)")
 ```
 
 ## Interpreting coefficients --- intercept and slopes
@@ -794,7 +932,8 @@ coef(fit_flipper)
 
 . . .
 
-- the \blueit{intercept} is the predicted response when all regressors are at 0
+- the \blueit{intercept} is the prediction when all regressors are at 0, so here it corresponds to the average body mass of a penguins that would have no flippers\
+(i.e. a nonsensical \blueit{extrapolation} in this case)
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation int
@@ -812,7 +951,8 @@ fit_flipper <- lm(body_mass ~ flipper_len, data = penguins_clean)
 coef(fit_flipper)
 ```
 
-- a \blueit{slope} gives the change in predicted response when its associated regressor increases by 1 unit (here 1 mm)
+- the \blueit{slope} gives the change in predicted values when its associated regressor increases by 1 unit, so here it means that the model predicts that penguins with flippers 1mm longer than others are on average `{r} round(coef(fit_flipper)[["flipper_len"]])` gr heavier than such others
+
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation slope
@@ -826,24 +966,6 @@ pred_diff[2] - pred_diff[1] # or simply diff(pred_diff)
 
 \textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
 
-\blueit{scaling} means removing the mean (i.e. \blueit{centering}) and divide by the SD (i.e. \blueit{standardising}), i.e. it means transforming the variable into \blueit{z-scores}
-```{r}
-#| echo: true
-#| label: prep flipper scaled
-penguins_clean |> 
-  mutate(flipper_len_z = scale(flipper_len)) -> penguins_clean # override original
-```
-
-**NB:** 
-
-- scaling both the response variable and the predictors is a recommended practice when using {nimble}, {stan}, etc... since it makes the definition of priors more consistent across studies; it also improves the efficiency of some MCMC samplers considerably since it decreases correlations between posteriors
-- some packages do similar things internally (e.g. {brms}), while doing themselves the necessary \blueit{back transformation} for allowing interpretations at the original scales
-
-
-
-## Interpreting coefficients --- scaling predictors
-
-\textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
 ```{r}
 #| echo: true
 #| label: fit flipper scaled
@@ -853,7 +975,24 @@ coef(fit_flipper_z)
 
 . . .
 
-- the \blueit{intercept} remains the predicted response when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length (i.e. `mean(penguins_clean$flipper_len)` = `{r} round(mean(penguins_clean$flipper_len), 1)` mm)
+**NB:** 
+
+- \blueit{scaling} means removing the mean (i.e. \blueit{centering}) and dividing by the SD (i.e. \blueit{standardising})
+- scaling both the response variable and the predictors is a recommended practice when using {nimble}, {stan}, etc... since it makes the definition of priors more consistent across studies; it also improves the efficiency of some MCMC samplers considerably since it decreases correlations between posteriors
+- some packages do similar things internally (e.g. {brms}), while doing themselves the necessary \blueit{back transformation} for allowing interpretations at the original scales
+
+
+## Interpreting coefficients --- scaling predictors
+
+\textcolor{red}{How to interpret the regression coefficients when predictors are scaled?}
+```{r}
+#| echo: true
+#| label: fit flipper scaled again
+fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
+coef(fit_flipper_z)
+```
+
+- the \blueit{intercept} remains the prediction when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length; so here the intercept corresponds to the average body mass of a penguins that would have flippers of `{r} round(mean(penguins_clean$flipper_len), 1)` mm  (i.e. no longer nonsensical)
 
 
 ## Interpreting coefficients --- scaling predictors
@@ -866,10 +1005,11 @@ fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
-- a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length (i.e. `sd(penguins_clean$flipper_len)` = `{r} round(sd(penguins_clean$flipper_len), 1)` mm)
+- the \blueit{slope} remains the change in predicted values when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length; so here it means that the model predicts that penguins with flippers 1 SD longer than others (`{r} round(sd(penguins_clean$flipper_len), 1)` mm) are on average `{r} round(coef(fit_flipper_z)[["flipper_len_z"]])` gr heavier than such others
 
 \bluebold{back transformation}
 
+It is possible to convert the coefficients to get back to the original (untransformed) scale!
 ```{r}
 #| echo: true
 #| label: equivalence flip
@@ -883,30 +1023,12 @@ coef(fit_flipper_z)["flipper_len_z"] / sd(penguins_clean$flipper_len)
 
 ```{r}
 #| echo: true
-#| label: prep body mass scaled
-penguins_clean |> 
-  mutate(body_mass_z = scale(body_mass)) -> penguins_clean # override original
-```
-
-```{r}
-#| echo: true
 #| label: fit body mass scaled
 fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins_clean)
 coef(fit_flipper_bmz)
 ```
 
-- again, the \blueit{intercept} remains the predicted response when all regressors are at 0, and a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but this time the response is expressed in SDs above the mean (i.e. z-scores) rather than grams
-
-## Interpreting coefficients --- scaling the response
-
-\textcolor{red}{How to interpret the regression coefficients when the response is scaled?}
-
-```{r}
-#| echo: true
-#| label: fit body mass scaled 2
-fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins_clean)
-coef(fit_flipper_bmz)
-```
+- again, the \blueit{intercept} remains the prediction when all regressors are at 0, and the \blueit{slope} remains the change in predicted values when its associated regressor increases by 1 unit, but this time the predicted values are expressed in numbers of SDs above the mean (i.e. z-scores) rather than grams
 
 \bluebold{back transformation}
 
@@ -947,18 +1069,19 @@ coef(fit_flipper_zz)
 ```
 
 1. the slope describes the increase in SD of body mass for an increase of 1 SD in flipper length
-2. the intercept is the mean scaled value of the body mass for a penguin with average flipper length, which is why it is 0
+2. the intercept is the mean scaled value of the body mass for a penguin with average flipper length, which is why it is 0 (a group of penguins with an average flipper length is expected to have an average body mass)
 3. back transformation of the slope:
 
 ```{r}
 #| echo: true
 #| label: fit all scaled solution
-(coef(fit_flipper_zz)["flipper_len_z"] / sd(penguins_clean$flipper_len)) * sd(penguins_clean$body_mass)
+#| size: scriptsize
+(coef(fit_flipper_zz)["flipper_len_z"] / sd(penguins_clean$flipper_len))*sd(penguins_clean$body_mass)
 ```
 
 ## Solution
 
-4. $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope seems appropriate
+4. something like $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope priors seems appropriate
 
 ::: columns
 ::: {.column width="65%"}
@@ -975,7 +1098,7 @@ flipper_z <- -3:3
 expand_grid(sim = seq_len(n_sims),
             flipper_len_z = flipper_z) |>
   mutate(body_mass_z = prior_intercept[sim] +
-           prior_slope[sim] * flipper_len_z) -> prior_pred
+           prior_slope[sim]*flipper_len_z) -> prior_pred
 
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -999,7 +1122,7 @@ flipper_z <- -3:3
 expand_grid(sim = seq_len(n_sims),
             flipper_len_z = flipper_z) |>
   mutate(body_mass_z = prior_intercept[sim] +
-           prior_slope[sim] * flipper_len_z) -> prior_pred
+           prior_slope[sim]*flipper_len_z) -> prior_pred
 
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -1018,14 +1141,14 @@ ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
 ```{r}
 #| echo: true
 #| label: fit sex
-penguins |> 
-  as_tibble() |> 
-  drop_na(body_mass, sex) -> penguins5 
-
-fit_sex <- lm(body_mass ~ sex, data = penguins5)
+fit_sex <- lm(body_mass ~ sex, data = penguins_clean)
 coef(fit_sex)
 ```
 \vspace{1cm}
+
+. . .
+
+\textcolor{red}{Any idea?}
 
 . . .
 
@@ -1034,11 +1157,11 @@ coef(fit_sex)
 
 ## Interpreting coefficients --- model matrix interlude
 
-it is more useful to check how the data are converted into the \blueit{model matrix}:
+It is more useful to check how the data are converted into the \blueit{model matrix}:
 ```{r}
 #| echo: true
 #| label: data sex
-penguins5 # data
+penguins_clean # data
 ```
 
 ```{r}
@@ -1049,12 +1172,12 @@ head(model.matrix(fit_sex)) # model matrix = i.e. what is multiplied to the coef
 
 ## Interpreting coefficients --- model matrix interlude
 
-Each row of the model matrix is multiplied by the regression coefficients to produce the \blueit{fitted values}, i.e the best model predictions for an average observation with the same characteristics as each observed row
+The model matrix is multiplied by the regression coefficients to produce the \blueit{fitted values}
 ```{r}
 #| echo: true
 #| label: fitted value sex
-tibble(fitted_value = as.vector(model.matrix(fit_sex) %*% coef(fit_sex)),
-       fitted_value_auto = fitted(fit_sex))
+tibble(fitted_value = fitted(fit_sex),
+       matrix_product = as.vector(model.matrix(fit_sex) %*% coef(fit_sex)))
 ```
 
 This implies:
@@ -1074,10 +1197,10 @@ $\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 
 coef(fit_sex)
 ```
 
-- the \blueit{intercept} remains the predicted response when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
-- the value called `sexmale` tell you by how much the predicted response increases when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins compared to female penguins
+- the \blueit{intercept} remains the prediction when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
+- the value called `sexmale` tell you by how much the predicted values increase when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins \bluenorm{compared to} female penguins
 
-when in doubt, do compare predictions!
+\bluenorm{When in doubt, do compare predictions!}
 
 ```{r}
 #| echo: true
