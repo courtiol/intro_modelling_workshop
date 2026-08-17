@@ -318,15 +318,19 @@ species_count |> filter(year == 2025)
 ```{r}
 #| echo: true
 #| message: true
-species_count |> filter(if_any(everything(), is.na)) #everything() selects all columns
+territories |> filter(if_any(everything(), is.na))
 ```
 
 . . .
 
+To drop NAs, you can use the {tidyr} function `drop_na()`
+
 ```{r}
 #| echo: true
 #| message: true
-territories |> filter(if_any(everything(), is.na))
+territories |> drop_na() -> territories_noNA # by default discards NA from any column
+pct_lost <- 100 * (nrow(territories) - nrow(territories_noNA)) / nrow(territories)
+pct_lost # percentage of rows lost b
 ```
 
 
