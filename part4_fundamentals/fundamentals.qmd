@@ -3277,14 +3277,12 @@ code <- nimbleCode({
       y[i] ~ dnorm(mean = mu, sd = sigma)
   }
   # set priors
-  mu ~ dnorm(mean = prior_mu, sd = prior_mu_sd)
-  sigma ~ dunif(min = prior_sd_min, max = prior_sd_max)
+  mu ~ dnorm(mean = 5, sd = 5)
+  sigma ~ dunif(min = 0, max = 15)
 })
 
 ## define constants
-constants <- list(N = length(y),
-                  prior_mu = 5, prior_mu_sd = 5,
-                  prior_sd_min = 0, prior_sd_max = 15)
+constants <- list(N = length(y))
 ```
 
 ## Bayesian statistics --- nimble example
@@ -3332,6 +3330,15 @@ mcmc_trace(results_nimb_d)
 - when the sample size is low, prior information can help the model converge faster and provides more stable estimates
 - convergence is not guaranteed when using MCMC (must be verified via diagnostics)
 - when the sample size is large, both should converge towards the same results since the influence of the prior decreases with $n$
+
+
+## Bayesian statistics --- Bayesian vs frequentist statistics
+
+Marc Kéry & Andy Royle, "Applied Hierarchical Modeling in Ecology"
+
+\vspace{1em}
+
+> \footnotesize "Are all HMs Bayesian models? No, not at all! Although in practice HMs are perhaps more often fit using Bayesian than non-Bayesian methods, there is nothing intrinsically Bayesian about an HM (Cressie and Wikle, 2011). In our books we use both likelihood and Bayesian methods to fit HMs. Indeed, we are a little weary of what we perceive as completely unnecessary trench wars between anti-Bayesians and Bayesians ... and we are very glad to note that they have ebbed down quite a bit during the last 2 decades. In such discussions, from the perspective of an applied statistical modeller, minute differences between the two approaches tend to be blown up completely out of proportion. We think that in practice the commonalities between non-Bayesian maximum likelihood and Bayesian inference are far, far greater than are their differences. Most of all, both likelihood and Bayesian inference are firmly rooted in the concept of a parametric statistical model, and in most practical applications the two will yield inferences that are numerically nearly indistinguishable. Of course, we do need to gloss over the major differences in the foundations of these methods... but we think that these are not something which will have to bother a non-statistician in most of his/her actual analyses. As a consequence, we firmly believe that both maximum likelihood and Bayesian methods are essential for applied statistical analysis, or applied data science, and the AHM project thoroughly reflects this view."
 
 
 # Learning more
