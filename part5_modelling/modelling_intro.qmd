@@ -249,15 +249,14 @@ Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the w
 
 . . .
 
-We can thus generate the size of 10 aliens that have eaten humans following E.L.'s recipe\
-(we assume that the number of humans eaten follows a Poisson with $\lambda = 3$):
+We can thus generate the size of 12 aliens that have eaten humans following E.L.'s recipe:
 
 ```{r}
 #| label: alien data
 #| echo: true
-set.seed(123L)
-N <- 10
-Alien <- tibble(humans_eaten = rpois(N, lambda = 3), # any alternative would do 
+set.seed(2)
+N <- 12
+Alien <- tibble(humans_eaten = rep(1:3, each = 4), # alternative e.g. rpois() would do 
                 intercept = 50, slope = 1.5,
                 error = rnorm(n = N, mean = 0, sd = 2), # must be rnorm!
                 size = intercept + slope*humans_eaten + error)
@@ -271,7 +270,7 @@ Alien <- tibble(humans_eaten = rpois(N, lambda = 3), # any alternative would do
 #| label: alien data2
 #| echo: true
 #| eval: false
-size <- rnorm(n = 10, mean = intercept + slope*humans_eaten, sd = 2)
+size <- rnorm(n = 12, mean = intercept + slope*humans_eaten, sd = 2)
 ```
 
 ## LM intro --- data generating process
@@ -297,7 +296,7 @@ Alien
 In practice, model parameters are unknown, so we have to estimate them\
 (that is the whole point of statistical modelling...)
 
-- in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data
+- in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data (in LM = minimising the sum of squared residuals)
 
 \vspace{1em}
 
@@ -306,7 +305,7 @@ In practice, model parameters are unknown, so we have to estimate them\
 #| echo: true
 #| eval: false
 fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
-summary(fit_alien_lm)
+summary(fit_alien_lm) # or coef(fit_alien_lm) for a focus on coefficients
 ```
 
 ```{r}
@@ -316,6 +315,212 @@ summary(fit_alien_lm)
 fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
 summary(fit_alien_lm)
 ```
+
+## LM intro --- vocabulary
+
+```{r}
+#| echo: true
+Alien |> 
+  mutate(mean_response_values = intercept + slope * humans_eaten,
+         fitted_values = fitted(fit_alien_lm), 
+         residuals = residuals(fit_alien_lm)) -> Alien
+```
+
+::: columns
+::: {.column width="55%"}
+```{r}
+#| label: visualisation lm
+#| fig.height: 6.5
+#| fig.width: 10
+#| echo: FALSE
+#| fig-align: center
+#| out-width: \linewidth
+# the code of this plot is unusually complicated, to try to show
+# things nicely
+mod_intercept <- coef(fit_alien_lm)[["(Intercept)"]]
+mod_slope     <- coef(fit_alien_lm)[["humans_eaten"]]
+
+#Data for mean and fitted lines
+line_data <- data.frame(humans_eaten = rep(c(0, 3.5), times = 2),
+                        var = rep(c("mean response value", "fitted value"),
+                                  each = 2))
+line_data$size <- ifelse(line_data$var == "mean response value",
+                         50 + line_data$humans_eaten*1.5,
+                         mod_intercept + line_data$humans_eaten*mod_slope)
+
+#Line and text data
+label_data <- data.frame(label = c("observed value",
+                                   "fitted value",
+                                   "mean response value",
+                                   "error",
+                                   "residual"),
+                         x = c(3.5, 3.5, 3.5, 1.2, 2.3),
+                         xend = c(3.05, 3.05, 3.05, 1.9, 2.1),
+                         y = c(59.5, 55.5, 52.5,
+                               Alien[7, "size", drop = TRUE] + 1,
+                               Alien[7, "size", drop = TRUE] + 1),
+                         yend = c(Alien[nrow(Alien), "size", drop = TRUE] + 0.2,
+                                  Alien[nrow(Alien), "fitted_values", drop = TRUE],
+                                  Alien[nrow(Alien), "mean_response_values", drop = TRUE],
+                                  0.5*Alien[7, "size", drop = TRUE] +
+                                    0.5*Alien[7, "mean_response_values", drop = TRUE],
+                                  0.5*Alien[7, "size", drop = TRUE] +
+                                    0.5*Alien[7, "fitted_values", drop = TRUE]))
+
+#Palette
+my_palette <- c("#3a405a", "#f06543", "#ddd92a", "#7371fc", "#20BF55")
+
+ggplot(data = Alien) +
+  geom_point(aes(x = humans_eaten, y = size, colour = "observed value"),
+             shape = 4, size = 1, stroke = 2) +
+  geom_segment(aes(x = 0, xend = humans_eaten,
+                   y = mean_response_values, yend = mean_response_values),
+               linetype = "dashed") +
+  geom_segment(aes(x = humans_eaten, xend = humans_eaten,
+                   y = mean_response_values, yend = 45),
+               linetype = "dashed") +
+  geom_line(data = line_data,
+            aes(x = humans_eaten, y = size, colour = var),
+            linewidth = 1) +
+  geom_point(aes(x = humans_eaten, y = mean_response_values,
+                 colour = "mean response value"),
+             size = 2) +
+  geom_point(aes(x = humans_eaten, y = fitted_values,
+                 colour = "fitted value"),
+             size = 2) +
+  geom_segment(data = Alien[7, ],
+               aes(xend = humans_eaten, x = humans_eaten - 0.05,
+                   y = size - 0.02, yend = size - 0.02,
+                   colour = "error"),
+               linewidth = 1) +
+  geom_segment(data = Alien[7, ],
+               aes(xend = humans_eaten, x = humans_eaten - 0.05,
+                   y = mean_response_values + 0.02,
+                   yend = mean_response_values + 0.02, colour = "error"),
+               linewidth = 1) +
+  geom_segment(data = Alien[7, ],
+               aes(x = humans_eaten - 0.05, xend = humans_eaten - 0.05,
+                   y = size, yend = mean_response_values,
+                   colour = "error"),
+                   linewidth = 1) +
+  geom_segment(data = Alien[7, ],
+               aes(xend = humans_eaten, x = humans_eaten + 0.05,
+                   y = size - 0.02, yend = size - 0.02,
+                   colour = "residual"),
+               linewidth = 1) +
+  geom_segment(data = Alien[7, ],
+               aes(xend = humans_eaten, x = humans_eaten + 0.05,
+                   y = fitted_values + 0.02,
+                   yend = fitted_values + 0.02,
+                   colour = "residual"),
+               linewidth = 1) +
+  geom_segment(data = Alien[7, ],
+               aes(x = humans_eaten + 0.05, xend = humans_eaten + 0.05,
+                   y = size, yend = fitted_values, 
+                   colour = "residual"),
+               linewidth = 1) +
+  geom_curve(data = label_data[1:3, ],
+             aes(x = x, xend = xend, y = y, yend = yend, colour = label),
+             curvature = 0.15, arrow = arrow(length = unit(0.3, units = "cm"))) +
+  geom_curve(data = label_data[4, ],
+             aes(x = x + 0.2, xend = xend, y = y, yend = yend, colour = label),
+             curvature = 0.15, arrow = arrow(length = unit(0.3, units = "cm"))) +
+  geom_curve(data = label_data[5, ],
+             aes(x = x, xend = xend, y = y, yend = yend, colour = label),
+             curvature = -0.15, arrow = arrow(length = unit(0.3, units = "cm"))) +
+  geom_text(data = label_data,
+            aes(x = x, y = y, label = label, colour = label),
+            hjust = 0, vjust = 0.5) +
+  scale_colour_manual(values = my_palette) +
+  scale_x_continuous(limits = c(0, 4.5),
+                     expand = c(0, 0), 
+                     breaks = 0:3) +
+  scale_y_continuous(limits = c(45, 60),
+                     breaks = c(45, mod_intercept, 50, 51.5, 53.0, 54.5, 60),
+                     labels = c("45.0",
+                                paste0("Intercept estimate --> ", signif(mod_intercept, 3)),
+                                "Intercept -->  50.0",
+                                "51.5", "53.0", "54.5", "60.0"),
+                     expand = c(0, 0)) +
+  labs(x = "Humans eaten", y = "Alien size") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.y = element_text(vjust = -22),
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        axis.title = element_text(size = 20, colour = "black"),
+        axis.text = element_text(size = 12, colour = "black"),
+        axis.ticks = element_line(colour = "black"),
+        plot.margin = margin(t = 10, r = 10, b = 10, l = 10))
+```
+:::
+::: {.column width="45%"}
+**NB:** 
+
+- a \blueit{prediction} is the average value of the response given by the fit for a large number of observations that would have specific predictor characteristics (i.e. here, the infinite number of points that makes the coral line)
+- a \blueit{fitted value} is a \blueit{prediction} at the predictor characteristics specifically observed
+- a \blueit{residual} is a difference between an observation and its fitted value (i.e. $\text{observation}_i = \text{fitted}_i + \text{residual}_i$)
+:::
+:::
+
+
+## LM intro --- model fitting
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS plot
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| echo: false
+#| fig-cap: Residuals on best fit
+par(las = 1)
+pred <- fitted.values(fit_alien_lm)
+resid <- residuals(fit_alien_lm)
+plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten", asp = 1)
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: alien RSS plot2
+#| fig-align: center
+#| fig-asp: 1
+#| fig-width: 5
+#| echo: false
+#| fig-cap: Squared residuals on best fit
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])
+    ),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
+```
+:::
+:::
+
 
 ## LM intro --- model fitting
 
@@ -329,14 +534,13 @@ Let's first use {brms}, which is simpler than {nimble} but handles a smaller set
 #| message: false
 library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien)
-summary(fit_alien_lm_brms)
+summary(fit_alien_lm_brms) # or fixef(fit_alien_lm_brms) for a focus on coefficients
 ```
 
 ```{=html}
 <!~~
 if compilation errors occur on the slide (e.g. cmath: No such file or directory),
-try running the block below before rendering,
-delete the knitr cache and re-render
+try re-rendering again
 ~~>
 ```
 
@@ -344,12 +548,12 @@ delete the knitr cache and re-render
 #| label: alien lm brms real
 #| echo: false
 #| message: false
-#| cache: true
+#| cache: false
 #| size: tiny
 library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
                          seed = 123,
-                         file = "cache_brms/fit_alien_lm_bmrs") # to store the compiled model (quicker to rerun)
+                         file = "cache_brms/fit_alien_lm_bmrs") # to store the compiled model (quick to rerun)
 summary(fit_alien_lm_brms)
 ```
 
@@ -544,25 +748,38 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
   - `body_mass` as the response variables
   - `flipper_len` as predictors
 
-. . . 
 
-\vfill
+# Interpreting coefficients
 
-**NB:** do not forget to clean and plot the dataset
+## Interpreting coefficients --- data preparation
+
+Let's create a single clean dataset with all the variables we will need
 
 ```{r}
 #| echo: true
-#| label: penguins2
-#| out-width: 4cm
-#| fig-align: center
+#| label: penguins_clean
 penguins |> 
-  drop_na(body_mass, flipper_len) -> penguins2
+  as_tibble() |>
+  filter(if_any(everything(), is.na))
 
-ggplot(penguins2) +
-  geom_point(aes(y = body_mass, x = flipper_len))
+penguins |> 
+  as_tibble() |> 
+  select(-starts_with("bill")) |> 
+  drop_na() |> 
+  mutate(flipper_len_z = scale(flipper_len)[,1], .after = flipper_len) |> 
+  mutate(body_mass_z = scale(body_mass)[,1], .after = body_mass) -> penguins_clean
+
+penguins_clean
 ```
 
-# Interpreting coefficients
+## Interpreting coefficients --- data preparation
+
+```{r}
+#| echo: true
+#| label: penguins clean plot
+ggplot(penguins_clean) +
+  geom_point(aes(y = body_mass, x = flipper_len))
+```
 
 ## Interpreting coefficients --- intercept and slopes
 
@@ -571,7 +788,7 @@ ggplot(penguins2) +
 ```{r}
 #| echo: true
 #| label: fit flipper
-fit_flipper <- lm(body_mass ~ flipper_len, data = penguins2)
+fit_flipper <- lm(body_mass ~ flipper_len, data = penguins_clean)
 coef(fit_flipper)
 ```
 
@@ -581,7 +798,7 @@ coef(fit_flipper)
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation int
-predict(fit_flipper, newdata = list(flipper_len = 0))
+predict(fit_flipper, newdata = data.frame(flipper_len = 0))
 ```
 
 ## Interpreting coefficients --- intercept and slopes
@@ -591,7 +808,7 @@ predict(fit_flipper, newdata = list(flipper_len = 0))
 ```{r}
 #| echo: true
 #| label: fit flipper bis
-fit_flipper <- lm(body_mass ~ flipper_len, data = penguins2)
+fit_flipper <- lm(body_mass ~ flipper_len, data = penguins_clean)
 coef(fit_flipper)
 ```
 
@@ -599,7 +816,7 @@ coef(fit_flipper)
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation slope
-pred_diff <- predict(fit_flipper, newdata = list(flipper_len = c(200, 201)))
+pred_diff <- predict(fit_flipper, newdata = data.frame(flipper_len = c(200, 201)))
 pred_diff
 pred_diff[2] - pred_diff[1] # or simply diff(pred_diff)
 ```
@@ -613,8 +830,8 @@ pred_diff[2] - pred_diff[1] # or simply diff(pred_diff)
 ```{r}
 #| echo: true
 #| label: prep flipper scaled
-penguins2 |> 
-  mutate(flipper_len_z = scale(flipper_len)) -> penguins3
+penguins_clean |> 
+  mutate(flipper_len_z = scale(flipper_len)) -> penguins_clean # override original
 ```
 
 **NB:** 
@@ -630,13 +847,13 @@ penguins2 |>
 ```{r}
 #| echo: true
 #| label: fit flipper scaled
-fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins3)
+fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
 . . .
 
-- the \blueit{intercept} remains the predicted response when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length (i.e. `mean(penguins3$flipper_len)` = `{r} round(mean(penguins3$flipper_len), 1)` mm)
+- the \blueit{intercept} remains the predicted response when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length (i.e. `mean(penguins_clean$flipper_len)` = `{r} round(mean(penguins_clean$flipper_len), 1)` mm)
 
 
 ## Interpreting coefficients --- scaling predictors
@@ -645,18 +862,18 @@ coef(fit_flipper_z)
 ```{r}
 #| echo: true
 #| label: fit flipper scaled 2
-fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins3)
+fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
-- a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length (i.e. `sd(penguins3$flipper_len)` = `{r} round(sd(penguins3$flipper_len), 1)` mm)
+- a \blueit{slope} remains the change in predicted response when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length (i.e. `sd(penguins_clean$flipper_len)` = `{r} round(sd(penguins_clean$flipper_len), 1)` mm)
 
 \bluebold{back transformation}
 
 ```{r}
 #| echo: true
 #| label: equivalence flip
-coef(fit_flipper_z)["flipper_len_z"] / sd(penguins3$flipper_len)
+coef(fit_flipper_z)["flipper_len_z"] / sd(penguins_clean$flipper_len)
 ```
 
 
@@ -667,14 +884,14 @@ coef(fit_flipper_z)["flipper_len_z"] / sd(penguins3$flipper_len)
 ```{r}
 #| echo: true
 #| label: prep body mass scaled
-penguins3 |> 
-  mutate(body_mass_z = scale(body_mass)) -> penguins4
+penguins_clean |> 
+  mutate(body_mass_z = scale(body_mass)) -> penguins_clean # override original
 ```
 
 ```{r}
 #| echo: true
 #| label: fit body mass scaled
-fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins4)
+fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins_clean)
 coef(fit_flipper_bmz)
 ```
 
@@ -686,15 +903,8 @@ coef(fit_flipper_bmz)
 
 ```{r}
 #| echo: true
-#| label: prep body mass scaled 2
-penguins3 |> 
-  mutate(body_mass_z = scale(body_mass)) -> penguins4
-```
-
-```{r}
-#| echo: true
 #| label: fit body mass scaled 2
-fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins4)
+fit_flipper_bmz <- lm(body_mass_z ~ flipper_len, data = penguins_clean)
 coef(fit_flipper_bmz)
 ```
 
@@ -703,9 +913,9 @@ coef(fit_flipper_bmz)
 ```{r}
 #| echo: true
 #| label: equivalence flip bm
-coef(fit_flipper_bmz)["(Intercept)"] * sd(penguins4$body_mass) + mean(penguins4$body_mass)
+coef(fit_flipper_bmz)["(Intercept)"] * sd(penguins_clean$body_mass) + mean(penguins_clean$body_mass)
 
-coef(fit_flipper_bmz)["flipper_len"] * sd(penguins4$body_mass)
+coef(fit_flipper_bmz)["flipper_len"] * sd(penguins_clean$body_mass)
 ```
 
 ## Practice `r next_practice()`
@@ -715,7 +925,7 @@ coef(fit_flipper_bmz)["flipper_len"] * sd(penguins4$body_mass)
 ```{r}
 #| echo: true
 #| label: fit all scaled
-fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins4)
+fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_zz)
 ```
 
@@ -732,7 +942,7 @@ coef(fit_flipper_zz)
 ```{r}
 #| echo: true
 #| label: fit all scaled 2
-fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins4)
+fit_flipper_zz <- lm(body_mass_z ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_zz)
 ```
 
@@ -743,7 +953,7 @@ coef(fit_flipper_zz)
 ```{r}
 #| echo: true
 #| label: fit all scaled solution
-(coef(fit_flipper_zz)["flipper_len_z"] / sd(penguins4$flipper_len)) * sd(penguins4$body_mass)
+(coef(fit_flipper_zz)["flipper_len_z"] / sd(penguins_clean$flipper_len)) * sd(penguins_clean$body_mass)
 ```
 
 ## Solution
@@ -770,7 +980,7 @@ expand_grid(sim = seq_len(n_sims),
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
   geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(group = NULL), data = penguins4)
+  geom_point(aes(group = NULL), data = penguins_clean)
 ```
 :::
 ::: {.column width="35%"}
@@ -794,7 +1004,7 @@ expand_grid(sim = seq_len(n_sims),
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
   geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(group = NULL), data = penguins4)
+  geom_point(aes(group = NULL), data = penguins_clean)
 ```
 :::
 :::
@@ -808,10 +1018,73 @@ ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
 ```{r}
 #| echo: true
 #| label: fit sex
-fit_sex <- lm(body_mass ~ sex, data = penguins)
+penguins |> 
+  as_tibble() |> 
+  drop_na(body_mass, sex) -> penguins5 
+
+fit_sex <- lm(body_mass ~ sex, data = penguins5)
+coef(fit_sex)
+```
+\vspace{1cm}
+
+. . .
+
+**NB:** it is usually best to avoid lucky guesses in this context
+
+
+## Interpreting coefficients --- model matrix interlude
+
+it is more useful to check how the data are converted into the \blueit{model matrix}:
+```{r}
+#| echo: true
+#| label: data sex
+penguins5 # data
+```
+
+```{r}
+#| echo: true
+#| label: sex design
+head(model.matrix(fit_sex)) # model matrix = i.e. what is multiplied to the coefficients
+```
+
+## Interpreting coefficients --- model matrix interlude
+
+Each row of the model matrix is multiplied by the regression coefficients to produce the \blueit{fitted values}, i.e the best model predictions for an average observation with the same characteristics as each observed row
+```{r}
+#| echo: true
+#| label: fitted value sex
+tibble(fitted_value = as.vector(model.matrix(fit_sex) %*% coef(fit_sex)),
+       fitted_value_auto = fitted(fit_sex))
+```
+
+This implies:
+
+$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
+
+
+## Interpreting coefficients --- qualitative predictors
+
+$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
+
+\vspace{1em}
+
+```{r}
+#| echo: true
+#| label: interpretation sex
 coef(fit_sex)
 ```
 
+- the \blueit{intercept} remains the predicted response when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
+- the value called `sexmale` tell you by how much the predicted response increases when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins compared to female penguins
+
+when in doubt, do compare predictions!
+
+```{r}
+#| echo: true
+#| label: prediction sex
+pred_sex <- predict(fit_sex, newdata = data.frame(sex = c("female", "male")))
+pred_sex
+```
 
 
 ## co plots
@@ -821,7 +1094,7 @@ coef(fit_sex)
 #| echo: true
 #| out-width: 3cm
 #| fig-align: center
-coplot(body_mass ~ flipper_len | species + sex, panel = panel.smooth, data = penguins2)
+coplot(body_mass ~ flipper_len | species + sex, panel = panel.smooth, data = penguins_clean)
 ```
 
 # Questions? {.unnumbered}
