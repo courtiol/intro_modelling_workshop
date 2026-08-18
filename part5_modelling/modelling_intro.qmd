@@ -886,6 +886,24 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 
 # Interpreting coefficients
 
+## Interpreting coefficients --- introduction
+
+Interpreting the meaning of \blueit{regression coefficients} (= \blueit{parameter estimates}) correctly in statistical models is the most critical part given that:
+
+::: {.incremental}
+- coefficients mediate the relationship between the statistics and the biology
+- tests, SE, confidence intervals and prediction intervals, all focus on such coefficients
+- different software and packages may influence aspects (contrasts, scale) that impact the meaning of the coefficients
+- most scientists fail to do so correctly, jeopardising the conclusions drawn in many publications
+:::
+
+. . .
+
+**NB:**
+
+- it requires some focus, but no more than middle school mathematics knowledge
+
+
 ## Interpreting coefficients --- data preparation: clean up
 
 Let's create a single clean dataset with all the variables we will need for everything
@@ -1164,38 +1182,30 @@ It is more useful to check how the data are converted into the \blueit{model mat
 penguins_clean # data
 ```
 
+::: columns
+::: {.column width="50%"}
 ```{r}
 #| echo: true
 #| label: sex design
-head(model.matrix(fit_sex)) # model matrix = i.e. what is multiplied to the coefficients
+head(model.matrix(fit_sex))
 ```
-
-## Interpreting coefficients --- model matrix interlude
-
-The model matrix is multiplied by the regression coefficients to produce the \blueit{fitted values}
-```{r}
-#| echo: true
-#| label: fitted value sex
-tibble(fitted_value = fitted(fit_sex),
-       matrix_product = as.vector(model.matrix(fit_sex) %*% coef(fit_sex)))
-```
-
-This implies:
-
-$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
-
+:::
+::: {.column width="50%"}
+Because the model matrix is multiplied to the regression coefficients, understand here that the coefficient for `sexmale` is multiplied by 1 when the row corresponds to a male, and 0 when it corresponds to a female
+:::
+:::
 
 ## Interpreting coefficients --- qualitative predictors
 
-$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
-
-\vspace{1em}
+\textcolor{red}{How to interpret the regression coefficients?}
 
 ```{r}
 #| echo: true
 #| label: interpretation sex
 coef(fit_sex)
 ```
+
+$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
 
 - the \blueit{intercept} remains the prediction when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
 - the value called `sexmale` tell you by how much the predicted values increase when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins \bluenorm{compared to} female penguins
@@ -1208,6 +1218,23 @@ coef(fit_sex)
 pred_sex <- predict(fit_sex, newdata = data.frame(sex = c("female", "male")))
 pred_sex
 ```
+
+## Practice `r next_practice()`
+
+\textcolor{red}{How to interpret the regression coefficients with an interaction between a qualitative and quantitative predictor?}
+
+```{r}
+#| echo: true
+#| label: fit int
+fit_flipper_int <- lm(body_mass ~ flipper_len*sex, data = penguins_clean)
+coef(fit_flipper_int)
+```
+
+1. check the design matrix
+2. predict by hand:
+   - the average body mass of a female penguin with a flipper length of 200 mm
+   - the average body mass of a male penguin with a flipper length of 200 mm
+3. interpret the meaning of each 4 coefficient
 
 
 ## co plots
