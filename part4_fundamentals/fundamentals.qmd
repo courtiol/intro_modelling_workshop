@@ -3259,7 +3259,7 @@ quantile2(posterior_clean, probs = c(0.025, 0.975)) # 95% credible interval
 
 You won't have to do as much programming as we just did:
 
-- for specific models, specific packages make it very easy to estimate posteriors (e.g. {brms}, {ubms})
+- for specific models, specific packages make it very easy to estimate posteriors (e.g. {rstanarm}, {brms}, {ubms})
 
 - multi-purpose packages also makes things easier, although you would have to write the model part yourself (e.g. {nimble}, {rstan}, {rjags})
 

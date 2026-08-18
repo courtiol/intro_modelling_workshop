@@ -24,8 +24,8 @@ To run the code, install the following R packages:
 
 ```r
 install.packages(c("tidyverse", "sf", "units", "geomtextpath", 
-                   "nimble", "brms", "posterior", "bayesplot",
-                   "spaMM"))
+                   "nimble", "rstanarm", "brms", "posterior",
+                   "bayesplot"))
 ```
 
 ## Technical Notes & Development
@@ -39,7 +39,7 @@ The main folders contain the Quarto documents (`.qmd` files) used to generate ea
 You will need additional packages to render them:
 
 ```r
-install.packages(c("quarto", "knitr", "kableExtra"))
+install.packages(c("quarto", "knitr", "kableExtra", "spaMM"))
 ```
 
 ### LLM Usage Disclosure
@@ -56,6 +56,6 @@ Claude Sonnet 3.5 and Gemma 4 were used for:
 I used the Quarto/Beamer combination to generate PDF slides.
 While the prospect of writing Markdown was attractive, the need for precise formatting led to extensive use of LaTeX.
 This resulted in a "polyglot" mix of YAML, Markdown and LaTeX, which often led to unpredictable interactions between Quarto, Pandoc, and LaTeX (particularly regarding spacing and environment nesting).
-So I spent a lot of time debugging LaTeX compilation failure for an output not as beautiful HTML ioslides despite more formatting effort put into it.
-For rendering the Quarto files, you will need as least the following LaTeX packages:
+
+For the LaTeX compilation to run, you will need as least the following LaTeX packages:
 `caption`, `textpos`, `xcolor`, `colortbl`, `makecell`, `tcolorbox`, `etoolbox`, `forest`, `amssymb`.
