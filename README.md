@@ -24,7 +24,7 @@ To run the code, install the following R packages:
 
 ```r
 install.packages(c("tidyverse", "sf", "units", "geomtextpath", 
-                   "nimble", "rstanarm", "brms", "posterior",
+                   "nimble", "brms", "posterior",
                    "bayesplot"))
 ```
 
