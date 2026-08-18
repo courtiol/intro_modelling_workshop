@@ -146,7 +146,7 @@ a data generating process produced by a \blueit{linear function}: the data are g
 
 \vfill
 
-**NB:** seeing models as data generating process is both conceptually and practically useful
+**NB:** seeing models as a data generating process is both conceptually and practically useful
 
 - it helps for understanding what model parameters mean
 - it helps for estimating statistical power
@@ -317,11 +317,11 @@ summary(fit_alien_lm)
 ```
 
 
-## LM intro --- model fitting: interlude on sum of squares
+## LM intro --- model fitting: interlude on ordinary least squares
 
 In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
 
-To best illustrate this concept, we need data more spread out
+To best illustrate the OLS concept, we need data more spread out
 
 ```{r}
 #| label: alien2 data
@@ -400,11 +400,11 @@ text(-3.5, 65,
 :::
 :::
 
-## LM intro --- model fitting: interlude on sum of squares
+## LM intro --- model fitting: interlude on ordinary least squares
 
 In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
 
-To best illustrate this concept, we need data more spread out
+To best illustrate the OLS concept, we need data more spread out
 
 ```{r}
 #| label: alien2 data fake
@@ -862,7 +862,7 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 \begin{footnotesize}
 \begin{itemize}
 \item<2-> we never obtained 50 (intercept), 1.5 (slope), or 2 (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
-\item<3-> despite the small samples size (`{r} paste0("N=", N)`) the estimates are in agreement and not too far from ground truth values
+\item<3-> despite the small sample size (`{r} paste0("N=", N)`) the estimates are in agreement and not too far from ground truth values
 \end{itemize}
 \pause
 \vspace{1em}
@@ -950,7 +950,7 @@ coef(fit_flipper)
 
 . . .
 
-- the \blueit{intercept} is the prediction when all regressors are at 0, so here it corresponds to the average body mass of a penguins that would have no flippers\
+- the \blueit{intercept} is the prediction when all regressors are at 0, so here it corresponds to the average body mass of a penguin that would have no flippers\
 (i.e. a nonsensical \blueit{extrapolation} in this case)
 ```{r}
 #| echo: true
@@ -1010,7 +1010,7 @@ fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
-- the \blueit{intercept} remains the prediction when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length; so here the intercept corresponds to the average body mass of a penguins that would have flippers of `{r} round(mean(penguins_clean$flipper_len), 1)` mm  (i.e. no longer nonsensical)
+- the \blueit{intercept} remains the prediction when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length; so here the intercept corresponds to the average body mass of a penguin that would have flippers of `{r} round(mean(penguins_clean$flipper_len), 1)` mm  (i.e. no longer nonsensical)
 
 
 ## Interpreting coefficients --- scaling predictors
@@ -1099,7 +1099,7 @@ coef(fit_flipper_zz)
 
 ## Solution
 
-4. something like $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope priors seems appropriate
+4. something like $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope priors seems appropriate (& close to {brms} default!)
 
 ::: columns
 ::: {.column width="65%"}
@@ -1191,7 +1191,12 @@ head(model.matrix(fit_sex))
 ```
 :::
 ::: {.column width="50%"}
-Because the model matrix is multiplied to the regression coefficients, understand here that the coefficient for `sexmale` is multiplied by 1 when the row corresponds to a male, and 0 when it corresponds to a female
+\begin{footnotesize}
+\begin{itemize}
+\item<2-> the model matrix is multiplied by the regression coefficients, so the coefficient \verb`sexmale` is multiplied by 1 when the row corresponds to a male, and by 0 when it corresponds to a female
+\item<3-> by default, R choose a reference level (by default, the first in alphabetical order) and expresses other effects in relation to that reference, a method called \blueit{treatment contrast}
+\end{itemize}
+\end{footnotesize}
 :::
 :::
 
@@ -1208,7 +1213,7 @@ coef(fit_sex)
 $\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
 
 - the \blueit{intercept} remains the prediction when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
-- the value called `sexmale` tell you by how much the predicted values increase when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins \bluenorm{compared to} female penguins
+- the value called `sexmale` tells you by how much the predicted values increase when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins \bluenorm{compared to} female penguins
 
 \bluenorm{When in doubt, do compare predictions!}
 
@@ -1234,18 +1239,45 @@ coef(fit_flipper_int)
 2. predict by hand:
    - the average body mass of a female penguin with a flipper length of 200 mm
    - the average body mass of a male penguin with a flipper length of 200 mm
-3. interpret the meaning of each 4 coefficient
+3. interpret the meaning of all 4 coefficients
 
+## Solution
 
-## co plots
+## Interpreting coefficients --- plotting predictions
+
+Computing and plotting prediction can be difficult, but the package {modelbased} from the {easystats} universe ([easystats.github.io/easystats](https://easystats.github.io/easystats)) makes this easy for many types of models
 
 ```{r}
-#| label: coplot intro
 #| echo: true
-#| out-width: 3cm
+#| out-height: 4cm 
 #| fig-align: center
-coplot(body_mass ~ flipper_len | species + sex, panel = panel.smooth, data = penguins_clean)
+#| label: fit int plot
+library(modelbased)
+estimate_relation(fit_flipper_int) |> 
+  plot(show_data = TRUE)
 ```
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\textcolor{red}{How to compute/illustrate model predictions when there are many predictors?}
+
+```{r}
+#| echo: true
+#| label: fit sp
+fit_flipper_all <- lm(body_mass ~ flipper_len + sex + island + species, data = penguins_clean)
+```
+
+\textbf{Example}
+
+you want to compute/illustrate the relationship between `body_mass` & `flipper_len`, what to do with the other predictors?
+
+\begin{small}
+\begin{itemize}
+\item<2-> \bluebold{conditional predictions}: the software fixes each non-focal predictor at a specific value (e.g. mean for quantitative variables, most frequent category for the qualitative variables) $\rightarrow$ easiest, but choice of reference can be arbitrary and computation even slightly wrong in more complex models involving non-linear transformation(s) (due to \blueit{Jensen's inequality})
+\item<3-> \bluebold{marginal predictions}: the software computes predictions for different values/levels of the focal and non-focal predictors and then averages those predictions across the non-focal predictors $\rightarrow$ often better, but more complex since different alternatives exist to compute the \blueit{reference grid} (depending on whether one wants to capture or erase the actual or structural correlations between predictors\footnote{structural correlations are caused by an unbalanced sampling design})
+\end{itemize}
+\end{small}
+
 
 # Questions? {.unnumbered}
 
