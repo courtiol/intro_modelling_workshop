@@ -25,7 +25,8 @@ To run the code, install the following R packages:
 ```r
 install.packages(c("tidyverse", "sf", "units", "geomtextpath", 
                    "nimble", "brms", "posterior",
-                   "bayesplot"))
+                   "bayesplot",
+                   "modelbased", "see", "emmeans", "marginaleffects"))
 ```
 
 ## Technical Notes & Development
