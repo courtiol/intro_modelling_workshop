@@ -572,27 +572,27 @@ mod_intercept <- coef(fit_alien_lm)[["(Intercept)"]]
 mod_slope     <- coef(fit_alien_lm)[["humans_eaten"]]
 
 #Data for mean and fitted lines
-line_data <- data.frame(humans_eaten = rep(c(0, 3.5), times = 2),
-                        var = rep(c("mean response value", "fitted value"),
-                                  each = 2))
+line_data <- tibble(humans_eaten = rep(c(0, 3.5), times = 2),
+                    var = rep(c("mean response value", "fitted value"),
+                              each = 2))
 line_data$size <- ifelse(line_data$var == "mean response value",
                          50 + line_data$humans_eaten*1.5,
                          mod_intercept + line_data$humans_eaten*mod_slope)
 
 #Line and text data
-label_data <- data.frame(label = c("observed value",
-                                   "fitted value",
-                                   "mean response value",
-                                   "error",
-                                   "residual"),
-                         x = c(3.5, 3.5, 3.5, 1.2, 2.3),
-                         xend = c(3.05, 3.05, 3.05, 1.9, 2.1),
-                         y = c(59.5, 55.5, 52.5,
-                               Alien[7, "size", drop = TRUE] + 1,
-                               Alien[7, "size", drop = TRUE] + 1),
-                         yend = c(Alien[nrow(Alien), "size", drop = TRUE] + 0.2,
-                                  Alien[nrow(Alien), "fitted_values", drop = TRUE],
-                                  Alien[nrow(Alien), "mean_response_values", drop = TRUE],
+label_data <- tibble(label = c("observed value",
+                               "fitted value",
+                               "mean response value",
+                               "error",
+                               "residual"),
+                     x = c(3.5, 3.5, 3.5, 1.2, 2.3),
+                     xend = c(3.05, 3.05, 3.05, 1.9, 2.1),
+                     y = c(59.5, 55.5, 52.5,
+                           Alien[7, "size", drop = TRUE] + 1,
+                           Alien[7, "size", drop = TRUE] + 1),
+                     yend = c(Alien[nrow(Alien), "size", drop = TRUE] + 0.2,
+                              Alien[nrow(Alien), "fitted_values", drop = TRUE],
+                              Alien[nrow(Alien), "mean_response_values", drop = TRUE],
                                   0.5*Alien[7, "size", drop = TRUE] +
                                     0.5*Alien[7, "mean_response_values", drop = TRUE],
                                   0.5*Alien[7, "size", drop = TRUE] +
@@ -702,8 +702,17 @@ Let's first use {brms}, which is simpler than {nimble} but handles a smaller set
 \vspace{1em}
 
 ```{r}
-#| label: alien lm brms real
+#| label: alien lm brms fake
 #| echo: true
+#| eval: false
+library(brms) # Bayesian regression models using stan
+fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien)
+mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be produced
+```
+
+```{r}
+#| label: alien lm brms real
+#| echo: false
 #| message: false
 #| cache: false
 #| out-height: 3.5cm
@@ -714,6 +723,7 @@ library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien, seed = 123,
                          file = "cache_brms/fit_alien_lm_bmrs") # storing the compiled model 
                                                                 # makes it quick to rerun
+                                                                # but dangerous if something changes
 mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be produced
 ```
 
@@ -807,8 +817,7 @@ expand_grid(prior, humans_eaten = humans_eaten_possible) |>
   mutate(size = intercept[sim] + slope[sim]*humans_eaten,
          resp = size + sigma[sim]) -> prior_pred
 
-ggplot(prior_pred) +
-  aes(x = humans_eaten, y = size) +
+ggplot(prior_pred, aes(x = humans_eaten, y = size)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_point(aes(group = NULL), colour = "#3333B3", data = Alien)
@@ -821,8 +830,7 @@ ggplot(prior_pred) +
 #| echo: false
 #| out-width: \linewidth
 #| fig-align: center
-ggplot(prior_pred) +
-  aes(x = humans_eaten, y = size) +
+ggplot(prior_pred, aes(x = humans_eaten, y = size)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
   geom_hline(yintercept = 0, linetype = "dashed") +
   geom_point(aes(group = NULL), colour = "#3333B3", data = Alien)
@@ -1169,7 +1177,7 @@ Interpreting the meaning of \blueit{regression coefficients} (= \blueit{paramete
 
 ## Interpreting coefficients --- data preparation: clean up
 
-Let's create a single clean dataset with all the variables we will need for everything
+Let's create a single clean dataset with all the variables we will need for a models
 
 ```{r}
 #| echo: true
@@ -1218,7 +1226,7 @@ coef(fit_flipper)
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation int
-predict(fit_flipper, newdata = data.frame(flipper_len = 0))
+predict(fit_flipper, newdata = tibble(flipper_len = 0))
 ```
 
 ## Interpreting coefficients --- intercept and slopes
@@ -1232,12 +1240,12 @@ fit_flipper <- lm(body_mass ~ flipper_len, data = penguins_clean)
 coef(fit_flipper)
 ```
 
-- the \blueit{slope} gives the change in predicted values when its associated regressor increases by 1 unit, so here it means that the model predicts that penguins with flippers 1mm longer than others are on average `{r} round(coef(fit_flipper)[["flipper_len"]])` gr heavier than such others
+- the \blueit{slope} gives the change in predicted values when its associated regressor increases by 1 unit, so here it means that the model predicts that penguins with flippers 1mm longer than others are on average `{r} round(coef(fit_flipper)[["flipper_len"]])`gr heavier than such others
 
 ```{r}
 #| echo: true
 #| label: fit flipper interpretation slope
-pred_diff <- predict(fit_flipper, newdata = data.frame(flipper_len = c(200, 201)))
+pred_diff <- predict(fit_flipper, newdata = tibble(flipper_len = c(200, 201)))
 pred_diff
 pred_diff[2] - pred_diff[1] # or simply diff(pred_diff)
 ```
@@ -1259,7 +1267,7 @@ coef(fit_flipper_z)
 **NB:** 
 
 - \blueit{scaling} means removing the mean (i.e. \blueit{centering}) and dividing by the SD (i.e. \blueit{standardising})
-- scaling both the response variable and the predictors is a recommended practice when using {nimble}, {stan}, etc... since it makes the definition of priors more consistent across studies; it also improves the efficiency of some MCMC samplers considerably since it decreases correlations between posteriors
+- scaling both the response variable and the predictors is a recommended practice when using {nimble}, {stan}, etc... since it makes the definition of priors more consistent across studies; it also improves the efficiency of some MCMC samplers since it decreases correlations between posteriors
 - some packages do similar things internally (e.g. {brms}), while doing themselves the necessary \blueit{back transformation} for allowing interpretations at the original scales
 
 
@@ -1273,7 +1281,7 @@ fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
-- the \blueit{intercept} remains the prediction when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0 mm, while `flipper_len_z = 0` means an average flipper length; so here the intercept corresponds to the average body mass of a penguin that would have flippers of `{r} round(mean(penguins_clean$flipper_len), 1)` mm  (i.e. no longer nonsensical)
+- the \blueit{intercept} remains the prediction when all regressors are at 0, but `flipper_len = 0` meant a flipper length of 0mm, while `flipper_len_z = 0` means an average flipper length; so here the intercept corresponds to the average body mass of a penguin that would have flippers of `{r} round(mean(penguins_clean$flipper_len), 1)`mm  (i.e. no longer nonsensical)
 
 
 ## Interpreting coefficients --- scaling predictors
@@ -1286,7 +1294,7 @@ fit_flipper_z <- lm(body_mass ~ flipper_len_z, data = penguins_clean)
 coef(fit_flipper_z)
 ```
 
-- the \blueit{slope} remains the change in predicted values when its associated regressor increases by 1 unit, but here 1 unit is not longer 1 mm but 1 SD in flipper length; so here it means that the model predicts that penguins with flippers 1 SD longer than others (`{r} round(sd(penguins_clean$flipper_len), 1)` mm) are on average `{r} round(coef(fit_flipper_z)[["flipper_len_z"]])` gr heavier than such others
+- the \blueit{slope} remains the change in predicted values when its associated regressor increases by 1 unit, but here 1 unit is not longer 1mm but 1 SD in flipper length; so here it means that the model predicts that penguins with flippers 1 SD longer than others (`{r} round(sd(penguins_clean$flipper_len), 1)`mm) are on average `{r} round(coef(fit_flipper_z)[["flipper_len_z"]])`gr heavier than such others
 
 \bluebold{back transformation}
 
@@ -1350,7 +1358,7 @@ coef(fit_flipper_zz)
 ```
 
 1. the slope describes the increase in SD of body mass for an increase of 1 SD in flipper length
-2. the intercept is the mean scaled value of the body mass for a penguin with average flipper length, which is why it is 0 (a group of penguins with an average flipper length is expected to have an average body mass)
+2. the intercept is the mean of the body mass z-scores for a penguin with average flipper length, which is why it is 0 (a group of penguins with an average flipper length is expected to have an average body mass)
 3. back transformation of the slope:
 
 ```{r}
@@ -1362,7 +1370,8 @@ coef(fit_flipper_zz)
 
 ## Solution
 
-4. something like $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope priors seems appropriate (& close to {brms} default!)
+4. something like $\mathcal{N}(0, \sigma = 2)$ for both the intercept and slope priors seems appropriate\
+(& close to {brms} default settings)
 
 ::: columns
 ::: {.column width="65%"}
@@ -1372,14 +1381,17 @@ coef(fit_flipper_zz)
 #| eval: false
 set.seed(123)
 n_sims <- 100
-prior_intercept <- rnorm(n_sims, mean = 0, sd = 2) 
-prior_slope <- rnorm(n_sims, mean = 0, sd = 2)
-flipper_z <- -3:3
 
-expand_grid(sim = seq_len(n_sims),
-            flipper_len_z = flipper_z) |>
-  mutate(body_mass_z = prior_intercept[sim] +
-           prior_slope[sim]*flipper_len_z) -> prior_pred
+prior <- tibble(sim = seq_len(n_sims),
+                intercep = rnorm(n_sims, mean = 0, sd = 2),
+                slope = rnorm(n_sims, mean = 0, sd = 2))
+              
+flipper_len_z_possible <- -3:3
+
+expand_grid(prior,
+            flipper_len_z = flipper_len_z_possible) |>
+  mutate(body_mass_z = intercept[sim] + slope[sim]*flipper_len_z
+         ) -> prior_pred
 
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -1457,7 +1469,7 @@ head(model.matrix(fit_sex))
 \begin{footnotesize}
 \begin{itemize}
 \item<2-> the model matrix is multiplied by the regression coefficients, so the coefficient \verb`sexmale` is multiplied by 1 when the row corresponds to a male, and by 0 when it corresponds to a female
-\item<3-> by default, R choose a reference level (by default, the first in alphabetical order) and expresses other effects in relation to that reference, a method called \blueit{treatment contrast}
+\item<3-> by default, R chooses a reference level (by default, the first in alphabetical order) and expresses other effects in relation to that reference, a method called \blueit{treatment contrast}
 \end{itemize}
 \end{footnotesize}
 :::
@@ -1473,7 +1485,7 @@ head(model.matrix(fit_sex))
 coef(fit_sex)
 ```
 
-$\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if female} \mid 1 \text{ if male})$
+$\text{predicted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 \text{ if } i \text{ is female or } 1 \text{ if } i \text{ is male})$
 
 - the \blueit{intercept} remains the prediction when all regressors are at 0, so here the average body mass of a penguin who is \bluenorm{female}
 - the value called `sexmale` tells you by how much the predicted values increase when the column of the design matrix called `sexmale` changes from 0 to 1 $\rightarrow$ it is thus the average increase in body mass of male penguins \bluenorm{compared to} female penguins
@@ -1483,7 +1495,7 @@ $\text{fitted value}_i = \text{(Intercept)} \times 1 + \text{sexmale} \times (0 
 ```{r}
 #| echo: true
 #| label: prediction sex
-pred_sex <- predict(fit_sex, newdata = data.frame(sex = c("female", "male")))
+pred_sex <- predict(fit_sex, newdata = tibble(sex = c("female", "male")))
 pred_sex
 ```
 
@@ -1498,13 +1510,95 @@ fit_flipper_int <- lm(body_mass ~ flipper_len*sex, data = penguins_clean)
 coef(fit_flipper_int)
 ```
 
-1. check the design matrix
+1. check the design matrix to understand the regressor used by  `flipper_len:sexmale`
 2. predict by hand:
    - the average body mass of a female penguin with a flipper length of 200 mm
    - the average body mass of a male penguin with a flipper length of 200 mm
 3. interpret the meaning of all 4 coefficients
+4. does body mass increases with flipper length in males?
 
 ## Solution
+
+```{r}
+#| echo: true
+coef(fit_flipper_int)
+```
+
+\small
+
+1. the design matrix tells us that `flipper_len:sexmale` is 0 for a female and the flipper length when the penguin is male
+```{r}
+#| echo: true
+#| label: design matrix
+head(model.matrix(fit_flipper_int), n = 2)
+```
+
+```{r}
+#| echo: true
+head(penguins_clean, n = 2)
+```
+
+## Solution
+
+```{r}
+#| echo: true
+coef(fit_flipper_int)
+```
+
+\small
+
+2. predictions can be computed as follows:
+
+$\text{predicted value}_i = \text{(Intercept)} \times 1 + \text{flipper\_len} \times \text{flipper\_len}_i + \text{ sexmale} \times (0 \text{ if } i \text{ is female or } 1 \text{ if } i \text{ is male}) + \text{flipper\_len:sexmale} \times (0 \text{ if } i \text{ is female or}  \text{ flipper\_len}_i \text{ if } i \text{ is male})$
+
+   - the average body mass of a female penguin with a flipper length of 200 mm
+   
+$= -5443.96 + 47.15 \times 200 + 406.80 \times 0 -0.29 \times 0 \sim 3986$
+
+. . .
+
+   - the average body mass of a male penguin with a flipper length of 200 mm
+   
+$= -5443.96 + 47.15 \times 200 + 406.80 \times 1 -0.29 \times 200 = 3986 \sim 4335$
+
+Exact solution (without rounding)
+
+```{r}
+#| echo: true
+predict(fit_flipper_int, newdata = tibble(sex = c("female", "male"), flipper_len = 200))
+```
+
+## Solution
+
+```{r}
+#| echo: true
+coef(fit_flipper_int)
+```
+
+\small
+
+3. interpretation
+
+- `(Intercept)` = average mean body mass of females with flippers of 0mm
+- `flipper_len` = average increase in body mass for females when flipper length is increased by 1mm
+- `sexmale`= average increase in male body mass \bluenorm{compared to female body mass} for penguins with flippers of 0mm
+- `flipper_len:sexmale` = average increase in male body mass \bluenorm{compared to the increase in females} when flipper length is increased by 1mm
+
+## Solution
+
+```{r}
+#| echo: true
+coef(fit_flipper_int)
+```
+
+\small
+
+4. body mass does increase with flipper length in males since the effect of flipper length in males is 47.15 - 0.29 ($>>$ 0)
+
+```{r}
+#| echo: true
+predict(fit_flipper_int, newdata = tibble(sex = "male", flipper_len = c(200, 201)))
+```
 
 ## Interpreting coefficients --- plotting predictions
 
@@ -1532,12 +1626,12 @@ fit_flipper_3var <- lm(body_mass ~ flipper_len + sex + species, data = penguins_
 
 \textbf{Example}
 
-you want to compute/illustrate the relationship between `body_mass` & `flipper_len`, what to do with sex & species?
+you want to compute/illustrate the relationship between `body_mass` & `flipper_len` from the fitted model above, what to do with sex & species?
 
 \begin{small}
 \begin{itemize}
-\item<2-> \bluebold{conditional predictions}: the software fixes each non-focal predictor at a specific value (e.g. mean for quantitative variables, most frequent category for the qualitative variables) $\rightarrow$ easiest, but choice of reference can be arbitrary and computation even slightly wrong in more complex models involving non-linear transformation(s) (due to \blueit{Jensen's inequality})
-\item<3-> \bluebold{marginal predictions}: the software computes predictions for different values/levels of the focal and non-focal predictors and then averages those predictions across the non-focal predictors $\rightarrow$ often better, but more complex since different alternatives exist to compute the \blueit{reference grid} (depending on whether one wants to capture or erase the actual or structural correlations between predictors\footnote{structural correlations are caused by an unbalanced sampling design})
+\item<2-> \bluebold{conditional predictions}: the software fixes each non-focal predictor at a specific value (e.g. the mean for quantitative variables \& the most frequent category for the qualitative variables) $\rightarrow$ easiest, but choice of reference can be arbitrary and the computation is even slightly wrong in models involving non-linear transformation(s) (due to \blueit{Jensen's inequality})
+\item<3-> \bluebold{marginal predictions}: the software computes predictions for different values/levels of the focal and non-focal predictors and then averages those predictions across the non-focal predictors $\rightarrow$ often better, but it is more difficult to grasp since different alternatives exist to compute the \blueit{reference grid} (depending on whether one wants to capture or erase the actual or structural correlations between predictors\footnote{structural correlations are caused by an unbalanced sampling design})
 \end{itemize}
 \end{small}
 
@@ -1566,7 +1660,7 @@ plot(cond_pred, show_data = TRUE)
 ```
 . . .
 
-\footnotesize \textbf{NB:} here, the conditional predictions are given for female Adelie penguins; in this particular model (but not generally), another reference (e.g. male Gentoo penguins) would only shift the regression line up or down, but it would not modify the slope since there is no interaction and the effects are linear
+\footnotesize \textbf{NB:} here, the conditional predictions are given for female Adelie penguins; in this particular model (but not generally), another reference (e.g. male Gentoo penguins) would only shift the regression line up or down, but it would not modify the slope since no interactions are considered and the effects are linear
 :::
 :::
 
@@ -1574,7 +1668,7 @@ plot(cond_pred, show_data = TRUE)
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1598,13 +1692,13 @@ as_tibble(marg_avg_pred)
 #| out-height: 3.5cm
 plot(marg_avg_pred, show_data = TRUE)
 ```
-\footnotesize \textbf{NB:} here, the marginal prediction is the average of the predicted values for all sampled penguins with the same flipper length and which my differ in their sex or species $\rightarrow$ preserves correlations between predictors & preserves the distributions of non-focal predictors (i.e. sex & species sampled more weigh more)
+\footnotesize \textbf{NB:} here, the marginal prediction is the average of the predicted values for all sampled penguins with the same flipper length and which may differ in their sex or species $\rightarrow$ preserves correlations between predictors & preserves the distributions of non-focal predictors (i.e. sex & species sampled more weigh more)
 :::
 :::
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1643,7 +1737,7 @@ grid_avg |>
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1673,7 +1767,7 @@ plot(marg_typic_pred, show_data = TRUE)
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1715,7 +1809,7 @@ grid_typic |>
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1746,7 +1840,7 @@ plot(marg_pop_pred, show_data = TRUE)
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population")
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population" method)
 
 ::: columns
 ::: {.column width="50%"}
@@ -1793,11 +1887,11 @@ Classic linear models (LM) are useful to fit many phenomena, including many for 
 LM won't work well for:
 
 - binary data (e.g. the presence/absence of a species)
-- proportion (e.g. the hatching success in a nest), especially if they can get close to 0 or 1
-- count data (e.g. the number of species caught on camera), especially if counts can be low
-- time to event data (e.g. time to dispersion), especially if times can be short
+- proportion (e.g. the hatching success in a nest), especially if values get close to 0 or 1
+- count data (e.g. the number of species caught on camera), especially if counts are low
+- time to event data (e.g. time to dispersion), especially if times are short
 
-For these situations GLM are often the first choice!
+For these situations GLM are the first choice!
 
 **NB:** logistic regression & poisson regressions are examples of GLM
 
@@ -1825,6 +1919,10 @@ We call:
 * $\text{V}$ the variance function
 * $\phi$ is the dispersion parameter
 
+**NB:** 
+
+- it is very much like an LM but there are new elements
+- in GLM, if $\phi = 1$ (the usual case) the variance in the response is directly a function of the mean and thus of $\eta$, so no need for $\sigma$ in this case!
 
 ## GLM --- data generating process: data simulation
 
@@ -1836,7 +1934,7 @@ Let's reenter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how her
 
 ```{=latex}
 \begin{equation*}
-P(\text{departure}_i) =  \frac{1}{1 + \exp^{2.197 - 1.5 \times \text{humans\_eaten}_{i}}}
+P(\text{departure}_i) =  \frac{1}{1 + \exp^{-(-2.197 + 1.5 \times \text{humans\_eaten}_{i})}}
 \end{equation*}
 ```
 
@@ -1844,7 +1942,7 @@ P(\text{departure}_i) =  \frac{1}{1 + \exp^{2.197 - 1.5 \times \text{humans\_eat
 #| label: GLM truth
 #| echo: false
 #| fig-align: center
-#| out-height: 4cm
+#| out-height: 3cm
 ggplot() +
   geom_function(fun = \(x) 1/(1 + exp(2.197 - 1.5 * x)), # 2.197 = log(9) -> y at 0.1 if x = 0
                 xlim = c(0, 6)) +
@@ -1854,12 +1952,12 @@ ggplot() +
   ylim(c(0, 1))
 ```
 
+**NB:** the function $\dfrac{1}{1+e^{-x}}$ is called the standard logistic function and is readily available in R via `plogis(x)`
+
 
 ## GLM --- data generating process: data simulation
 
 Let's reenter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how her world generates data
-
-. . .
 
 \bluenorm{Emerald Lion} informed us that in her world aliens depart to another planet following this rule:
 
@@ -1876,7 +1974,7 @@ We can thus generate data on 35 aliens following E.L. recipe:
 #| echo: true
 set.seed(123)
 Alien2 <- tibble(humans_eaten = rep(0:6, each = 5),
-                 prob_departure = 1/(1 + exp(-(-2.197 + 1.5*humans_eaten))),
+                 prob_departure = plogis(-2.197 + 1.5*humans_eaten),
                  departed = rbinom(n = 35, size = 1, prob = prob_departure))
 ```
 
@@ -1907,23 +2005,32 @@ In practice, model parameters are \bluenorm{unknown}, so we have to estimate the
 \vspace{1em}
 
 ```{r}
-#| label: alien glm fake
+#| label: alien glm
 #| echo: true
-#| eval: false
 fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2, family = binomial(link = "logit"))
-summary(fit_alien_glm) # or coef(fit_alien_glm) for a focus on coefficients only
 ```
 
+**NB:**
+
+- we used `glm()` rather than `lm()`
+- we have a new term `binomial(link = "logit")` to indicate that the data are generated via a binomial distribution and to indicate which link the fit must use\footnote{the link is the function that converts the linear predictor into the scale of the response, or as here into a probability (more on that later)}
+
+
+## GLM --- model fitting: frequentist approach
+
+The summary table is not very different from those produced with `lm()` either
+
 ```{r}
-#| label: alien glm real
-#| echo: false
+#| label: alien glm summary
+#| echo: true
 #| size: scriptsize
-fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2,
-                     family = binomial(link = "logit"))
 summary(fit_alien_glm)
 ```
 
-## GLM --- model fitting: Bayesian approach {brms}
+
+## GLM --- model fitting: Bayesian approach with {brms}
+
+Fitting GLM with {brm} is slightly different since it uses a specific family for binary data\footnote{the Bernoulli distribution is a special case of the binomial data when there is only 1 trial}
 
 ```{r}
 #| label: alien glm brms fake
@@ -1931,7 +2038,8 @@ summary(fit_alien_glm)
 #| eval: false
 #| message: false
 fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
-                          family = bernoulli(link = "logit"))
+                          family = bernoulli(link = "logit"),
+                          iter = 10000) # more needed than default this time
 summary(fit_alien_glm_brms) # or fixef(fit_alien_lm_brms) for a focus on coefficients
 ```
 
@@ -1946,57 +2054,68 @@ try re-rendering again
 #| label: alien glm brms real
 #| echo: false
 #| message: false
+#| size: scriptsize
 #| cache: false
 fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
                           family = bernoulli(link = "logit"),
                           seed = 123,
+                          iter = 10000,
                           file = "cache_brms/fit_alien_glm_bmrs") # to store the compiled model (quick to rerun)
 summary(fit_alien_glm_brms)
 ```
 
 ## GLM --- model fitting: Bayesian approach with {nimble}
 
+Defining the GLM by hand with {nimble} is relatively simple...
+
 ```{r}
 #| label: alien glm nimble prep
 #| echo: true
-#| size: scriptsize
-
 code_glm <- nimbleCode({ 
-  # model mimicking the data generating process
   for (i in seq_len(N)) {
-      departed[i] ~ dbinom(size = 1, prob = plogis(intercept + slope*humans_eaten[i]))
+      # model mimicking the data generating process
+      logit(p[i]) <- intercept + slope*humans_eaten[i]
+      departed[i] ~ dbin(p[i], 1)
   }
   # prior
   intercept ~ dnorm(mean = 0, sd = 2)
   slope ~ dnorm(mean = 0, sd = 2)
 })
 
-constants <- list(N = nrow(Alien2),
-                  humans_eaten = Alien2$humans_eaten)
+constants_glm <- list(N = nrow(Alien2),
+                      humans_eaten = Alien2$humans_eaten)
 
-inits <- list(intercept = mean(Alien2$departed), slope = 0)
+inits_glm <- list(intercept = 0, slope = 0)
 ```
 
-## GLM --- model fitting: Bayesian approach (prior sanity check)
+## GLM --- model fitting: Bayesian approach (prior predictive checking)
+
+
+... but again we need to make sure the priors are sensible and here it is even more difficult to foresee
 
 ::: columns
 ::: {.column width="60%"}
 ```{r}
 #| echo: true
+#| fig-show: hide
 set.seed(123)
 n_sims2 <- 100
-prior_intercept2 <- rnorm(n = n_sims2, 
-                          mean = 0, sd = 2)
-prior_slope2 <- rnorm(n = n_sims2,
-                      mean = 0, sd = 2)
+
+prior_intercept2 <- rnorm(n = n_sims2, mean = 0, sd = 2)
+prior_slope2 <- rnorm(n = n_sims2, mean = 0, sd = 2)
 
 expand_grid(sim = seq_len(n_sims2),
             humans_eaten = seq(0, 6, by = 0.1)) |> 
-  mutate(prob = 1/(1 + exp(-
-     (prior_intercept2[sim] +
-      prior_slope2[sim]*humans_eaten)
-     ))) -> prior_pred2
+  mutate(prob = 1/(1 + plogis(prior_intercept2[sim] + 
+      prior_slope2[sim] * humans_eaten))) -> prior_pred2
+
+ggplot(prior_pred2) +
+  geom_histogram(aes(x = prob))
+
+ggplot(prior_pred2) +
+  geom_line(aes(y = prob, x = humans_eaten, group = sim))
 ```
+- it looks OK
 :::
 ::: {.column width="40%"}
 ```{r}
@@ -2012,11 +2131,58 @@ ggplot(prior_pred2) +
 #| fig-align: center
 #| out-height: 3cm
 ggplot(prior_pred2) +
-  geom_line(aes(y = prob, x = humans_eaten, group = sim),
-            alpha = 0.5)
+  geom_line(aes(y = prob, x = humans_eaten, group = sim))
 ```
 :::
 :::
+
+
+## GLM --- model fitting: Bayesian approach with {nimble}
+
+We can now fit the model with {nimble}
+
+\vspace{1em}
+
+```{r}
+#| label: alien glm nimble fit
+#| echo: true
+#| cache: true
+#| fig-show: hide
+#| results: hide
+fit_alien_glm_nimb <- nimbleMCMC(code = code_glm,
+                                 constants = constants_glm,
+                                 data = list(departed = Alien2$departed),
+                                 inits = inits_glm, nchains = 4, setSeed = 1:4,
+                                 nburnin = 4000)
+summary(as_draws(fit_alien_glm_nimb))
+```
+
+```{r}
+#| echo: true
+summary(as_draws(fit_alien_glm_nimb))
+```
+
+## GLM --- model fitting: interlude on logit
+
+\textcolor{red}{What is the so-called \blueit{logit} (or logistic unit, or log-odds)?}
+
+\vspace{1em}
+
+```{r}
+#| label: alien glm fake 2
+#| echo: true
+#| eval: false
+fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2, family = binomial(link = "logit"))
+```
+
+- it is the inverse of the standard logistic distribution, and is defined as: $\text{logit}(p) = \text{log}\frac{p}{1-p}$
+
+proof:
+
+$\frac{1}{1+e^{-\text{logit}(p)}} = \frac{1}{1+e^{-\text{log}\frac{p}{1-p}}}=\frac{1}{1+\frac{1}{e^{\text{log}\frac{p}{1-p}}}}=\frac{1}{1+\frac{1}{\frac{p}{1-p}}}=\frac{1}{1+\frac{1-p}{p}}=\frac{1}{\frac{p+1-p}{p}}=\frac{1}{\frac{1}{p}}=p$
+
+- it is the scale in which the linear predictor of the current GLM is expressed since the logit is allowed to vary between $-\infty$ and $\infty$ while $p$ is constrained to vary between -1 and 1
+
 
 
 # Questions? {.unnumbered}
