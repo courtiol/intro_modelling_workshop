@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Basic and Advanced Statistical Modelling"
-subtitle: "From LMs to GLMMs"
+subtitle: "From LM to GLMM"
 author: "Alexandre Courtiol"
 format:
    beamer:
@@ -124,45 +124,59 @@ next_practice <- function(counter = NULL) {
 if (!dir.exists("cache_brms")) dir.create("cache_brms")
 ```
 
-# Linear Models introduction (LM)
+# Linear Models (LM)
 
-## LM intro --- what are models?
+## LM --- what is a statistical model?
 
-\vfill
+\bluebold{Statistical model}
 
-\bluebold{What is a statistical model?}
-
-a \blueit{statistical model} is an approximate description of the \blueit{data generating process}
+an approximate description of the \blueit{data generating process}, i.e. an approximation of how the world generate data
 
 . . .
 
-\vfill
+\vspace{1em}
 
-\bluebold{What is a linear model?}
+**NB:** seeing models as a \blueit{data generating process} may not be intuitive at first, but it is both conceptually and practically crucial!
+
+\vspace{1em}
+
+In particular, it helps
+
+- interpreting correctly model parameters
+- planning sample size before data collection
+- testing the coverage of confidence intervals (i.e. do they work as intended)
+- testing the robustness of the statistical test (i.e. check the rate of false positives)
+- perform prior and posterior predictive checks during Bayesian analyses
+
+
+
+## LM --- what is a linear model (LM)?
+
+\bluebold{Linear model}
 
 a data generating process produced by a \blueit{linear function}: the data are generated from a set of terms by multiplying each term by a constant (a model parameter) and summing them
 
 . . .
 
-\vfill
+\vspace{1em}
 
-**NB:** seeing models as a data generating process is both conceptually and practically useful
+**NB:**
 
-- it helps for understanding what model parameters mean
-- it helps for estimating statistical power
-- it helps for knowing how to test fitting procedure by simulation
+- linear models encompass the classic linear regression which forms a straight line, but also many other models (e.g. polynomials are linear and yet do not form straight lines)
+- much of difficulties people encounter when dealing with more complex models (e.g. Generalised Linear Models, Linear Mixed-effects Models, Hierarchical Models) is often caused by not having sufficiently understood the LM
 
-\vfill
 
-## LM intro --- notations of a LM: simple notation
+## LM --- notations of a LM: simple notation
 
 \vspace{1em}
 
 \begin{center}
-$y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$
+$y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$ with $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$
 \end{center}
 
 . . .
+
+\vspace{1em}
 
 - $y_i$ = the response variable / dependent variable / observations to explain
 - $\beta_j$ = the model parameters / regression coefficients
@@ -177,9 +191,10 @@ $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta
 
 - this is the notation that biologists should use in their paper/thesis to describe their model
 - the regressors are sometimes directly given by the columns from your dataset (i.e. the predictors), but not always (more on that later)
+- when parameters are not know but estimated they should wear a hat (e.g. $\hat{\beta_0}$) and $\epsilon_i$ (also sometimes called $\varepsilon_i$) usually becomes $e_i$ or $r_i$
 
 
-## LM intro --- notations of a LM: usual R notation
+## LM --- notations of a LM: usual R notation
 
 \vspace{1em}
 
@@ -192,7 +207,7 @@ $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta
 - the parameters and the error term are not written down
 
 
-## LM intro --- notations of a LM: matrix notation
+## LM --- notations of a LM: matrix notation
 
 \vspace{1em}
 
@@ -222,21 +237,17 @@ $$
 - $Y$ = the vector of observations
 - $X$ = a matrix called the design (or model) matrix
 - $\beta$ = the vector of model parameters
-- $\epsilon$ = the vector of errors
+- $\epsilon$ = the vector of errors, with again $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$
 
 \vspace{1em}
 
-**NB:** this is the notation for statisticians and computer scientists, which can also be useful to interpret coefficients
+**NB:** this is the notation for statisticians and computer scientists, which is particularly useful when interpreting coefficients
 
 
-## LM intro --- data generating process: data simulation
+## LM --- data generating process: data simulation
 <!-- Emerald Lion is an anagram to linear model -->
 
-Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the world generates data
-
-. . .
-
-\bluenorm{Emerald Lion} (a goddess) informed us that she grows aliens of a certain size as follows:
+Let's enter \bluebold{God mode} $\rightarrow$ we pretend that \bluenorm{Emerald Lion} (a goddess) knows how her world generates data; she informed us that in her world aliens keep growing with the number of humans they eat as follows:
 
 ```{=latex}
 \begin{equation*}
@@ -249,7 +260,7 @@ Let's enter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how the w
 
 . . .
 
-We can thus generate the size of 12 aliens that have eaten humans following E.L.'s recipe:
+We can thus generate the size of 12 aliens that have eaten 1--3 humans following E.L.'s recipe:
 
 ```{r}
 #| label: alien data
@@ -273,7 +284,7 @@ Alien <- tibble(humans_eaten = rep(1:3, each = 4), # alternative e.g. rpois() wo
 size <- rnorm(n = 12, mean = intercept + slope*humans_eaten, sd = 2)
 ```
 
-## LM intro --- data generating process: data check
+## LM --- data generating process: data check
 
 \bluebold{Simulated data}
 ```{r}
@@ -286,15 +297,54 @@ Alien
 - which columns show \blueit{regressor} (here = predictor)?
 - which columns show \blueit{errors}?
 - which columns show \blueit{response variable}?
-- how the \blueit{response variable} is computed?
-- what would the \blueit{mean response value} be, for an alien who does not eat humans?
-- what would the \blueit{mean response value} be, for an alien who eats 2 humans?
 
 
-## LM intro --- model fitting: frequentist approach
+## Practice `r next_practice()`
+
+\bluebold{Simulated data}
+```{r}
+#| label: alien study bis
+#| echo: true
+Alien
+```
+
+- which columns show the \blueit{model parameters}?
+- which columns show \blueit{regressor} (here = predictor)?
+- which columns show \blueit{errors}?
+- which columns show \blueit{response variable}?
+- \textcolor{red}{what would the \blueit{mean response value} be, for an alien who does not eat humans?}
+-  \textcolor{red}{what would the \blueit{mean response value} be, for an alien who eats 2 humans?}
+
+
+## Solution
+
+\vfill
+
+- \textcolor{red}{what would the \blueit{mean response value} be, for an alien who does not eat humans?}
+
+\begin{center}
+$\text{mean}(y \mid \text{humans\_eaten}=0) = 50 + 1.5 \times 0 = 50$
+\end{center}
+
+. . .
+
+\vspace{1cm}
+
+- \textcolor{red}{what would the \blueit{mean response value} be, for an alien who eats 2 humans?}
+
+\begin{center}
+$\text{mean}(y \mid \text{humans\_eaten}=2) = 50 + 1.5 \times 2 = 53$
+\end{center}
+
+\vfill
+
+
+## LM --- model fitting: frequentist approach
 
 In practice, model parameters are \bluenorm{unknown}, so we have to estimate them\
-(that is the whole point of statistical modelling...)
+$\rightarrow$ that is the whole point of statistical modelling... $\rightarrow$ the God mode is now off
+
+. . .
 
 - in frequentist statistics, \blueit{fitting the model} means estimating the values of the model parameters that maximise the probability of the data
 
@@ -317,11 +367,11 @@ summary(fit_alien_lm)
 ```
 
 
-## LM intro --- model fitting: interlude on ordinary least squares
+## LM --- model fitting: interlude on ordinary least squares (OLS)
 
-In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
+In LM (but not GLM), finding the estimates that maximise the probability of the data given the model (i.e. maximising the likelihood) is equivalent to minimising the sum of the squared residuals, so this is what `lm()` actually does since it is computationally simpler than computing the likelihood
 
-To best illustrate the OLS concept, we need data more spread out
+To best illustrate the OLS concept, we need to simulate data a little more spread out
 
 ```{r}
 #| label: alien2 data
@@ -342,7 +392,7 @@ fit_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
 #| fig-align: center
 #| fig-asp: 1
 #| fig-width: 5
-#| out-height: 4cm
+#| out-height: 3cm
 #| echo: false
 #| fig-cap: Residuals on best fit
 par(las = 1)
@@ -367,7 +417,7 @@ legend("topleft", bty = "n", col = c("black", "blue"),
 #| fig-align: center
 #| fig-asp: 1
 #| fig-width: 5
-#| out-height: 4cm
+#| out-height: 3cm
 #| echo: false
 #| fig-cap: Squared residuals on best fit
 par(las = 1)
@@ -400,11 +450,11 @@ text(-3.5, 65,
 :::
 :::
 
-## LM intro --- model fitting: interlude on ordinary least squares
+## LM --- model fitting: interlude on ordinary least squares (OLS)
 
-In LM (but not GLM), finding the regression line that maximises the probability of the data is equivalent to minimising the sum of squared residuals, so this is what `lm()` actually does
+In LM (but not GLM), finding the estimates that maximise the probability of the data given the model (i.e. maximising the likelihood) is equivalent to minimising the sum of the squared residuals, so this is what `lm()` actually does since it is computationally simpler than computing the likelihood
 
-To best illustrate the OLS concept, we need data more spread out
+To best illustrate the OLS concept, we need to simulate data a little more spread out
 
 ```{r}
 #| label: alien2 data fake
@@ -424,7 +474,7 @@ fit_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
 #| fig-align: center
 #| fig-asp: 1
 #| fig-width: 5
-#| out-height: 4cm
+#| out-height: 3cm
 #| echo: false
 #| fig-cap: Squared residuals on bad fit
 par(las = 1)
@@ -464,7 +514,7 @@ text(-3.5, 65, paste("RSS =", round(sum(badresid^2), 1)),
 #| fig-align: center
 #| fig-asp: 1
 #| fig-width: 5
-#| out-height: 4cm
+#| out-height: 3cm
 #| echo: false
 #| fig-cap: Squared residuals on best fit
 par(las = 1)
@@ -497,7 +547,7 @@ text(-3.5, 65,
 :::
 :::
 
-## LM intro --- model fitting: fit vs ground truth
+## LM --- model fitting: fit vs ground truth, & vocabulary
 
 ```{r}
 #| echo: true
@@ -623,7 +673,7 @@ ggplot(data = Alien) +
                                 "Intercept -->  50.0",
                                 "51.5", "53.0", "54.5", "60.0"),
                      expand = c(0, 0)) +
-  labs(x = "Humans eaten", y = "Alien size") +
+  labs(x = "No. of humans eaten", y = "Alien size (cm)") +
   theme_classic() +
   theme(legend.position = "none",
         axis.title.y = element_text(vjust = -22),
@@ -636,55 +686,78 @@ ggplot(data = Alien) +
 ```
 :::
 ::: {.column width="45%"}
-**NB:** 
-
-- a \blueit{prediction} is the average value of the response given by the fit for a large number of observations that would have specific predictor characteristics (i.e. here, the infinite number of points that makes the coral line)
-- a \blueit{fitted value} is a \blueit{prediction} at the predictor characteristics specifically observed
+- a \blueit{prediction} is the average value of the response given by the fit for a large number of observations with the same predictor characteristics (i.e. any point on the coral line is a prediction)
+- a \blueit{fitted value} is a \blueit{prediction} at observed predictor characteristics (i.e. only the points for 1, 2 and 3 humans on the coral line)
 - a \blueit{residual} is a difference between an observation and its fitted value (i.e. $\text{observation}_i = \text{fitted}_i + \text{residual}_i$)
 :::
 :::
 
 
-## LM intro --- model fitting: Bayesian approach with {brms}
+## LM --- model fitting: Bayesian approach with {brms}
 
-- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
 
-Let's first use {brms}, which is simpler than {nimble} but handles a smaller set of models:
-```{r}
-#| label: alien lm brms fake
-#| echo: true
-#| eval: false
-#| message: false
-library(brms) # Bayesian regression models using stan
-fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien)
-summary(fit_alien_lm_brms) # or fixef(fit_alien_lm_brms) for a focus on coefficients
-```
+Let's first use {brms}, which is simpler than {nimble} but handles a smaller set of models
 
-```{=html}
-<!~~
-if compilation errors occur on the slide (e.g. cmath: No such file or directory),
-try re-rendering again
-~~>
-```
+\vspace{1em}
 
 ```{r}
 #| label: alien lm brms real
-#| echo: false
+#| echo: true
 #| message: false
 #| cache: false
-#| size: tiny
+#| out-height: 3.5cm
+#| fig-align: center
+#| fig-width: 24
+#| fig-height: 6
 library(brms) # Bayesian regression models using stan
-fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien,
-                         seed = 123,
-                         file = "cache_brms/fit_alien_lm_bmrs") # to store the compiled model (quick to rerun)
-summary(fit_alien_lm_brms)
+fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien, seed = 123,
+                         file = "cache_brms/fit_alien_lm_bmrs") # storing the compiled model 
+                                                                # makes it quick to rerun
+mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be produced
 ```
 
-## LM intro --- model fitting: Bayesian approach with {nimble}
+## LM --- model fitting: Bayesian approach with {brms}
 
-- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
 
-Let's now use {nimble}:
+Here are the posteriors distributions
+
+\vspace{1em}
+
+```{r}
+#| label: alien lm brms real other plot
+#| echo: true
+#| message: false
+#| cache: false
+#| out-height: 3.5cm
+#| fig-align: center
+#| fig-width: 24
+#| fig-height: 6
+mcmc_plot(fit_alien_lm_brms, type = "dens_overlay") # many diagnostic plots can be produced
+```
+
+## LM --- model fitting: Bayesian approach with {brms}
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Here is the summary for the posteriors distributions
+
+```{r}
+#| label: alien lm brms trace
+#| echo: true
+#| size: scriptsize
+summary(fit_alien_lm_brms) # or fixef(fit_alien_lm_brms) for a focus on coefficients
+```
+
+## LM --- model fitting: Bayesian approach with {nimble}
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Let's now use {nimble}
+
+\vspace{1em}
+
 ```{r}
 #| label: alien lm nimble prep
 #| echo: true
@@ -694,127 +767,316 @@ library(posterior)
 library(bayesplot)
 
 code <- nimbleCode({ 
-  # model mimicking the data generating process
-  for (i in seq_len(N)) {
+  for (i in seq_len(N)) { # model mimicking the data generating process
       size[i] ~ dnorm(mean = intercept + slope*humans_eaten[i], sd = sigma)
   }
-  # prior
-  intercept ~ dnorm(mean = 50, sd = 20)
-  slope ~ dnorm(mean = 0, sd = 10)
-  sigma ~ dunif(min = 0, max = 100)
+  # priors
+  intercept ~ dnorm(mean = 50, sd = 5)
+  slope ~ dnorm(mean = 0, sd = 5)
+  sigma ~ dunif(min = 0, max = 5)
 })
 
-constants <- list(N = nrow(Alien),
-                  humans_eaten = Alien$humans_eaten)
+constants <- list(N = nrow(Alien), humans_eaten = Alien$humans_eaten)
 
 inits <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
 ```
 
-## LM intro --- model fitting: priors sanity check
+## LM --- model fitting: prior predictive checking
 
-- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
 
-Before fitting the model, let's make sure our priors for the intercept and slope are not too vague
+Before fitting the model, let's make sure our priors are not too vague
 
 ::: columns
 ::: {.column width="65%"}
 ```{r}
 #| echo: true
-#| eval: false
+#| fig-show: hide
+#| size: scriptsize
 set.seed(123)
-n_sims <- 100
-prior_intercept <- rnorm(n_sims, mean = 50, sd = 20) 
-prior_slope <- rnorm(n_sims, mean = 0, sd = 10)
-humans_eaten_possible <-
-  min(Alien$humans_eaten):max(Alien$humans_eaten)
+n_sims <- 1000
 
-expand_grid(sim = seq_len(n_sims),
-            humans_eaten = humans_eaten_possible) |>
-  mutate(size = prior_intercept[sim] +
-           prior_slope[sim]*humans_eaten) -> prior_pred
+prior <- tibble(sim = seq_len(n_sims),
+                intercept = rnorm(n_sims, mean = 50, sd = 5),
+                slope = rnorm(n_sims, mean = 0, sd = 5),
+                sigma = runif(n_sims, min = 0, max = 5))
 
-ggplot(prior_pred, aes(humans_eaten, size)) +
+humans_eaten_possible <- min(Alien$humans_eaten):max(Alien$humans_eaten)
+
+expand_grid(prior, humans_eaten = humans_eaten_possible) |>
+  mutate(size = intercept[sim] + slope[sim]*humans_eaten,
+         resp = size + sigma[sim]) -> prior_pred
+
+ggplot(prior_pred) +
+  aes(x = humans_eaten, y = size) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
   geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(group = NULL), data = Alien)
+  geom_point(aes(group = NULL), colour = "#3333B3", data = Alien)
 ```
 :::
 ::: {.column width="35%"}
-```{r}
-#| echo: false
-#| out-width: 0.9\linewidth
-#| fig-align: center
-set.seed(123)
-n_sims <- 100
-prior_intercept <- rnorm(n_sims, mean = 50, sd = 20) 
-prior_slope <- rnorm(n_sims, mean = 0, sd = 10)
-humans_eaten_possible <-
-  min(Alien$humans_eaten):max(Alien$humans_eaten)
-
-expand_grid(sim = seq_len(n_sims),
-            humans_eaten = humans_eaten_possible) |>
-  mutate(size = prior_intercept[sim] +
-           prior_slope[sim] * humans_eaten) -> prior_pred
-
-ggplot(prior_pred, aes(humans_eaten, size)) +
-  geom_line(aes(group = sim), linewidth = 0.1) + 
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  geom_point(aes(group = NULL), data = Alien)
-```
-
 . . .
 
-- this looks good: not too many silly sizes and yet wide enough to cover a wide range of slopes
-- scaling the data would improve things (see later) 
+```{r}
+#| echo: false
+#| out-width: \linewidth
+#| fig-align: center
+ggplot(prior_pred) +
+  aes(x = humans_eaten, y = size) +
+  geom_line(aes(group = sim), linewidth = 0.1) + 
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(aes(group = NULL), colour = "#3333B3", data = Alien)
+```
+
+\begin{scriptsize}
+\begin{itemize}
+\item priors for intercept and slope look OK: wide enough to cover a wide range of relationships \& not too wide
+\item scaling the data would improve things (see later)
+\end{itemize}
+\end{scriptsize}
+:::
+:::
+
+## LM --- model fitting: prior predictive checking
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Before fitting the model, let's make sure our priors are not too vague
+
+::: columns
+::: {.column width="65%"}
+```{r}
+#| label: other plot nimble
+#| echo: true
+#| size: scriptsize
+#| eval: false
+ggplot() +
+  geom_histogram(aes(x = resp, after_stat(density), fill = "from priors"),
+                 data = prior_pred) +
+  geom_histogram(aes(x = size, after_stat(density), fill = "observed"),
+                 alpha = 0.5, data = Alien) +
+  scale_fill_manual(values = c("#00CC99", "#3333B3"), name = "data")
+```
+\only<2->{\textbf{NB:}
+\begin{footnotesize}
+\begin{itemize}
+\tightlist
+\item one should not fine tune the priors based on the observed data since a dataset may be biased (risk of \blueit{overfitting}), but one should make sure that the priors are somewhat realistic
+\item how to best choose priors is an ongoing research question, and the most covered topic in Bayesian statistics (e.g. more objective technics and databases are starting to emerge)
+\item if you have enough data, also long as priors are not too silly, they should have little effect on your posteriors (and you can check that)
+\item whatever you do, do describe what you do in your papers!
+\end{itemize}
+\end{footnotesize}
+}
+:::
+::: {.column width="35%"}
+```{r}
+#| label: other plot nimble displayed
+#| echo: false
+#| out-width: \linewidth
+#| fig-align: center
+ggplot() +
+  geom_histogram(aes(x = resp, after_stat(density), fill = "from priors"),
+                 data = prior_pred) +
+  geom_histogram(aes(x = size, after_stat(density), fill = "observed"),
+                 alpha = 0.5, data = Alien) +
+  scale_fill_manual(values = c("#00CC99", "#3333B3"), name = "data")
+```
+
+\begin{scriptsize}
+\begin{itemize}
+\item priors for sigma look OK too: potentially the priors can produce data encompassing the real ones, without risking producing silly alien sizes
+\end{itemize}
+\end{scriptsize}
 :::
 :::
 
 
-## LM intro --- model fitting: Bayesian approach with {nimble}
+## LM --- model fitting: Bayesian approach with {nimble}
 
-- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distribution
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+We can now fit the model with {nimble}
 
 \vspace{1em}
 
 ```{r}
-#| label: alien lm nimble fit fake
+#| label: alien lm nimble fit
 #| echo: true
-#| eval: false
+#| cache: true
+#| fig-show: hide
+#| results: hide
 fit_alien_lm_nimb <- nimbleMCMC(code = code,
                                 constants = constants,
                                 data = list(size = Alien$size), # response goes here
-                                inits = inits)
-
-fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb)
-summary(fit_alien_lm_nimb_d)
+                                inits = inits, nchains = 4, setSeed = 1:4,
+                                nburnin = 4000) # amply sufficient here (brms used 1000)
+mcmc_trace(fit_alien_lm_nimb) # not mcmc_plot which only is for {brms}
 ```
 
 ```{r}
-#| label: alien lm nimble fit real
+#| label: alien lm nimble fit plot
 #| echo: false
-#| cache: true
-#| size: tiny
-fit_alien_lm_nimb <- nimbleMCMC(code = code,
-                                constants = constants,
-                                data = list(size = Alien$size),
-                                inits = inits,
-                                nchains = 1,
-                                setSeed = 123,
-                                progressBar = FALSE)
+#| out-height: 3.5cm
+#| fig-align: center
+#| fig-width: 24
+#| fig-height: 6
+mcmc_trace(fit_alien_lm_nimb)
+```
 
+
+## LM --- model fitting: Bayesian approach with {nimble}
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Here are the posterior distributions
+
+\vspace{1em}
+
+```{r}
+#| label: alien lm nimble posteriors
+#| echo: true
+#| out-height: 3.5cm
+#| fig-align: center
+#| fig-width: 24
+#| fig-height: 6
+mcmc_dens_overlay(fit_alien_lm_nimb)
+```
+
+## LM --- model fitting: Bayesian approach with {nimble}
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Here is the summary for the posteriors distributions
+
+\vspace{1em}
+
+```{r}
+#| label: alien lm nimble fit summary
+#| echo: true
 fit_alien_lm_nimb_d <- as_draws(fit_alien_lm_nimb)
 summary(fit_alien_lm_nimb_d)
 ```
 
+## LM --- model fitting: posterior predictive checking
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+After fitting the model, let's make sure our posterior are not off
+
+::: columns
+::: {.column width="65%"}
+```{r}
+#| echo: true
+#| fig-show: hide
+#| size: scriptsize
+posterior1 <- tibble(
+  intercept = fit_alien_lm_nimb_d[, 1, "intercept", drop = TRUE],
+  slope = fit_alien_lm_nimb_d[, 1, "slope", drop  = TRUE],
+  error = rnorm(n = length(fit_alien_lm_nimb_d[,1 , 1]),
+                sd = fit_alien_lm_nimb_d[, 1, "sigma", drop = TRUE]))
+
+expand_grid(posterior1, humans_eaten = Alien$humans_eaten) |> 
+  mutate(pred = intercept + slope * humans_eaten) -> pred1
+
+ggplot() +
+  geom_density(aes(x = pred, after_stat(density),
+                   colour = "from posteriors"), data = pred1) +
+  geom_density(aes(x = resp, after_stat(density),
+                   colour = "from priors"), data = prior_pred,) +
+  geom_density(aes(x = size, after_stat(density),
+                   colour = "observed"), data = Alien) +
+  scale_colour_manual(values = c("#FF5050", "#00CC99", "#3333B3"),
+                      name = "data",
+                      guide = guide_legend(position = "top")) +
+  xlim(limits = c(35, 75))
+```
+:::
+::: {.column width="35%"}
 . . .
 
-**NB:** for real applications
+```{r}
+#| echo: false
+#| out-width: \linewidth
+#| fig-align: center
+ggplot() +
+  geom_density(aes(x = pred, after_stat(density),
+                   colour = "from posteriors"), data = pred1) +
+  geom_density(aes(x = resp, after_stat(density),
+                   colour = "from priors"), data = prior_pred,) +
+  geom_density(aes(x = size, after_stat(density),
+                   colour = "observed"), data = Alien) +
+  scale_colour_manual(values = c("#FF5050", "#00CC99", "#3333B3"),
+                      name = "data",
+                      guide = guide_legend(position = "top")) +
+  xlim(limits = c(35, 75))
+```
 
-- the predictor variables should be scaled (see later)
-- the posteriors should be trimmed, thinned and checked
+\begin{scriptsize}
+\begin{itemize}
+\item this looks OK: the posterior predictions are much more concentrated than the prior ones, and close to the observations although the number of observations is a little to low to judge properly
+\end{itemize}
+\end{scriptsize}
+:::
+:::
+
+## LM --- model fitting: posterior predictive checking
+
+- in Bayesian statistics, \blueit{fitting the model} means using the data to characterise the posterior distributions
+
+Let's check how correlated posteriors are
+
+::: columns
+::: {.column width="65%"}
+```{r}
+#| label: posterior correlations fake
+#| echo: true
+#| eval: false
+ggplot() +
+  geom_point(aes(y = intercept, x = slope, colour = "prior"),
+             alpha = 0.3, data = prior) +
+  geom_point(aes(y = intercept, x = slope, colour = "posterior"),
+             alpha = 0.3, data = posterior1) +
+  scale_colour_manual(
+    values = c("#00CC99", "#FF5050"),
+    name = "data",
+    guide = guide_legend(position = "top",
+                         override.aes = list(alpha = 1)))
+```
+\only<2->{
+\textbf{NB:} for real applications
+\begin{itemize}
+\item the predictor variables should be scaled to avoid strong correlations (see later)
+\end{itemize}
+}
+:::
+::: {.column width="35%"}
+```{r}
+#| label: posterior correlations real
+#| echo: false
+#| fig-height: 10
+#| fig-align: center
+ggplot() +
+  geom_point(aes(y = intercept, x = slope, colour = "prior"),
+             alpha = 0.3, data = prior) +
+  geom_point(aes(y = intercept, x = slope, colour = "posterior"),
+             alpha = 0.3, data = posterior1) +
+  scale_colour_manual(
+    values = c("#00CC99", "#FF5050"),
+    name = "data",
+    guide = guide_legend(position = "top",
+    override.aes = list(alpha = 1)))
+```
+\begin{scriptsize}
+\begin{itemize}
+\item this looks OK: the posterior predictions are within the priors, which further validate the choice of our priors
+\end{itemize}
+\end{scriptsize}
+:::
+:::
 
 
-## LM intro --- model fitting results: estimates compared
+## LM --- model fitting results: estimates compared
 
 Let's compare the results
 
@@ -862,7 +1124,7 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 \begin{footnotesize}
 \begin{itemize}
 \item<2-> we never obtained 50 (intercept), 1.5 (slope), or 2 (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
-\item<3-> despite the small sample size (`{r} paste0("N=", N)`) the estimates are in agreement and not too far from ground truth values
+\item<3-> despite the small sample size (`{r} paste0("N=", N)`) the estimates are in agreement and all intervals include ground truth values
 \end{itemize}
 \pause
 \vspace{1em}
@@ -897,12 +1159,13 @@ Interpreting the meaning of \blueit{regression coefficients} (= \blueit{paramete
 - most scientists fail to do so correctly, jeopardising the conclusions drawn in many publications
 :::
 
-. . .
+\only<5->{
+\textbf{NB:}
 
-**NB:**
-
-- it requires some focus, but no more than middle school mathematics knowledge
-
+\begin{itemize}
+\item it requires some focus, but no more than middle school mathematics knowledge
+\end{itemize}
+}
 
 ## Interpreting coefficients --- data preparation: clean up
 
@@ -1259,17 +1522,17 @@ estimate_relation(fit_flipper_int) |>
 
 ## Interpreting coefficients --- conditional and marginal predictions
 
-\textcolor{red}{How to compute/illustrate model predictions when there are many predictors?}
+\textcolor{red}{How to compute/illustrate model predictions for a subset of predictors?}
 
 ```{r}
 #| echo: true
-#| label: fit sp
-fit_flipper_all <- lm(body_mass ~ flipper_len + sex + island + species, data = penguins_clean)
+#| label: fit 3var
+fit_flipper_3var <- lm(body_mass ~ flipper_len + sex + species, data = penguins_clean)
 ```
 
 \textbf{Example}
 
-you want to compute/illustrate the relationship between `body_mass` & `flipper_len`, what to do with the other predictors?
+you want to compute/illustrate the relationship between `body_mass` & `flipper_len`, what to do with sex & species?
 
 \begin{small}
 \begin{itemize}
@@ -1277,6 +1540,483 @@ you want to compute/illustrate the relationship between `body_mass` & `flipper_l
 \item<3-> \bluebold{marginal predictions}: the software computes predictions for different values/levels of the focal and non-focal predictors and then averages those predictions across the non-focal predictors $\rightarrow$ often better, but more complex since different alternatives exist to compute the \blueit{reference grid} (depending on whether one wants to capture or erase the actual or structural correlations between predictors\footnote{structural correlations are caused by an unbalanced sampling design})
 \end{itemize}
 \end{small}
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Conditional predictions} of the effect of `flipper_len` on `body_mass`
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: cond pred
+#| echo: TRUE
+#| size: scriptsize
+cond_pred <- estimate_relation(fit_flipper_3var,
+                               by = "flipper_len")
+cond_pred
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: plot cond pred
+#| echo: TRUE
+#| fig-align: center
+#| out-height: 3.5cm
+plot(cond_pred, show_data = TRUE)
+```
+. . .
+
+\footnotesize \textbf{NB:} here, the conditional predictions are given for female Adelie penguins; in this particular model (but not generally), another reference (e.g. male Gentoo penguins) would only shift the regression line up or down, but it would not modify the slope since there is no interaction and the effects are linear
+:::
+:::
+
+
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred average
+#| echo: TRUE
+#| size: scriptsize
+marg_avg_pred <- estimate_means(
+  fit_flipper_3var,
+  by = list(flipper_len = penguins_clean$flipper_len),
+  estimate = "average")
+
+as_tibble(marg_avg_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: plot marg pred average
+#| echo: TRUE
+#| fig-align: center
+#| out-height: 3.5cm
+plot(marg_avg_pred, show_data = TRUE)
+```
+\footnotesize \textbf{NB:} here, the marginal prediction is the average of the predicted values for all sampled penguins with the same flipper length and which my differ in their sex or species $\rightarrow$ preserves correlations between predictors & preserves the distributions of non-focal predictors (i.e. sex & species sampled more weigh more)
+:::
+:::
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("average")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred average bis
+#| echo: TRUE
+#| size: scriptsize
+marg_avg_pred <- estimate_means(
+  fit_flipper_3var,
+  by = list(flipper_len = penguins_clean$flipper_len),
+  estimate = "average")
+
+as_tibble(marg_avg_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: marg pred average hand
+#| echo: TRUE
+#| size: scriptsize
+penguins_clean |> 
+  select(flipper_len, sex, species) -> grid_avg
+
+grid_avg |> 
+  mutate(pred = predict(
+    fit_flipper_3var,
+    newdata = grid_avg)) -> grid_avg
+
+grid_avg |> 
+  summarise(Mean = mean(pred), .by = "flipper_len") |> 
+  arrange(flipper_len)
+```
+:::
+:::
+
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred typical
+#| echo: TRUE
+#| size: scriptsize
+marg_typic_pred <- estimate_means(
+  fit_flipper_3var,
+  by = "flipper_len",
+  estimate = "typical")
+
+as_tibble(marg_typic_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: plot marg pred typical
+#| echo: TRUE
+#| fig-align: center
+#| out-height: 3.5cm
+plot(marg_typic_pred, show_data = TRUE)
+```
+\footnotesize \textbf{NB:} here, the marginal prediction is the average of the predicted values considering that any given flipper length could be found in either sex and in any species with the same probability $\rightarrow$ breaks down correlations between predictors & flattens the distributions of non-focal predictors (i.e. both sex and all species exert the same weight, as in a perfectly balanced experimental design)
+:::
+:::
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("typical")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred typical bis
+#| echo: TRUE
+#| size: scriptsize
+marg_typic_pred <- estimate_means(
+  fit_flipper_3var,
+  by = "flipper_len",
+  estimate = "typical")
+
+as_tibble(marg_typic_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: marg pred typical hand
+#| echo: TRUE
+#| size: scriptsize
+expand_grid(
+  flipper_len = seq(172, 231, length = 10),
+  sex = unique(penguins_clean$sex),
+  species = unique(penguins_clean$species)) -> grid_typic
+
+grid_typic |> 
+  mutate(pred = predict(
+    fit_flipper_3var,
+    newdata = grid_typic)) -> grid_typic
+
+grid_typic |> 
+  summarise(Mean = mean(pred), .by = "flipper_len") |> 
+  arrange(flipper_len)
+```
+:::
+:::
+
+
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred population
+#| echo: TRUE
+#| size: scriptsize
+marg_pop_pred <- estimate_means(
+  fit_flipper_3var,
+  by = "flipper_len",
+  estimate = "population")
+
+as_tibble(marg_pop_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: plot marg pred population
+#| echo: TRUE
+#| fig-align: center
+#| out-height: 3.5cm
+plot(marg_pop_pred, show_data = TRUE)
+```
+\footnotesize \textbf{NB:} here, the marginal prediction is the average of the predicted values considering that any given flipper length could be found in either sex and in any species with probability reflecting the sampled data $\rightarrow$ breaks down correlations between predictors, but preserve the distributions of non-focal predictors (i.e. sex & species sampled more weigh more)
+:::
+:::
+
+
+## Interpreting coefficients --- conditional and marginal predictions
+
+\bluebold{Marginal predictions} of the effect of `flipper_len` on `body_mass` ("population")
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: marg pred population bis
+#| echo: TRUE
+#| size: scriptsize
+marg_pop_pred <- estimate_means(
+  fit_flipper_3var,
+  by = "flipper_len",
+  estimate = "population")
+
+as_tibble(marg_pop_pred)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: marg pred population hand
+#| echo: TRUE
+#| size: scriptsize
+expand_grid(
+  flipper_len = seq(172, 231, length = 10),
+  sex = penguins_clean$sex,
+  species = penguins_clean$species) -> grid_pop
+
+grid_pop |> 
+  mutate(pred = predict(
+    fit_flipper_3var,
+    newdata = grid_pop)) -> grid_pop
+
+grid_pop |> 
+  summarise(Mean = mean(pred), .by = "flipper_len") |> 
+  arrange(flipper_len)
+```
+:::
+:::
+
+# Generalised Linear Models (GLM)
+
+## GLM --- why the need?
+
+Classic linear models (LM) are useful to fit many phenomena, including many for which the relationship between a predictor and the response is not linear (e.g. polynomials), but they share the limitation that they are designed to approximate a data generating process that is intrinsically Gaussian (remember that the error is assumed normally distributed)
+
+LM won't work well for:
+
+- binary data (e.g. the presence/absence of a species)
+- proportion (e.g. the hatching success in a nest), especially if they can get close to 0 or 1
+- count data (e.g. the number of species caught on camera), especially if counts can be low
+- time to event data (e.g. time to dispersion), especially if times can be short
+
+For these situations GLM are often the first choice!
+
+**NB:** logistic regression & poisson regressions are examples of GLM
+
+
+
+## GLM --- notations of a GLM: simple notation
+
+\vspace{1em}
+
+\begin{center}
+$\eta_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i}$
+\end{center}
+
+with
+
+\begin{itemize}
+\item $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+\item $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$
+\end{itemize}
+
+We call:
+
+* $\eta$ the linear predictor
+* $g$ the link function ($g^{-1}$ is the inverse link function)
+* $\text{V}$ the variance function
+* $\phi$ is the dispersion parameter
+
+
+## GLM --- data generating process: data simulation
+
+Let's reenter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how her world generates data
+
+. . .
+
+\bluenorm{Emerald Lion} informed us that in her world aliens depart to another planet following this rule:
+
+```{=latex}
+\begin{equation*}
+P(\text{departure}_i) =  \frac{1}{1 + \exp^{2.197 - 1.5 \times \text{humans\_eaten}_{i}}}
+\end{equation*}
+```
+
+```{r}
+#| label: GLM truth
+#| echo: false
+#| fig-align: center
+#| out-height: 4cm
+ggplot() +
+  geom_function(fun = \(x) 1/(1 + exp(2.197 - 1.5 * x)), # 2.197 = log(9) -> y at 0.1 if x = 0
+                xlim = c(0, 6)) +
+  stat_function(fun = \(x) 1/(1 + exp(2.197 - 1.5 * x)), # 2.197 = log(9) -> y at 0.1 if x = 0
+                xlim = c(0, 6), n = 7, geom = "point") + 
+  labs(y = "Probability of departure", x = "Number of humans eaten") +
+  ylim(c(0, 1))
+```
+
+
+## GLM --- data generating process: data simulation
+
+Let's reenter \bluebold{God(dess) mode} $\rightarrow$ we pretend we know how her world generates data
+
+. . .
+
+\bluenorm{Emerald Lion} informed us that in her world aliens depart to another planet following this rule:
+
+```{=latex}
+\begin{equation*}
+P(\text{departure}_i) =  \frac{1}{1 + \exp^{-(-2.197 + 1.5 \times \text{humans\_eaten}_{i})}}
+\end{equation*}
+```
+
+We can thus generate data on 35 aliens following E.L. recipe:
+
+```{r}
+#| label: GLM data generation
+#| echo: true
+set.seed(123)
+Alien2 <- tibble(humans_eaten = rep(0:6, each = 5),
+                 prob_departure = 1/(1 + exp(-(-2.197 + 1.5*humans_eaten))),
+                 departed = rbinom(n = 35, size = 1, prob = prob_departure))
+```
+
+## GLM --- data generating process: data check
+
+::: columns
+::: {.column width="50%"}
+```{r}
+#| label: GLM data generation show part 1
+#| echo: true
+Alien2 |> slice(1:17) |> print(n = Inf)
+```
+:::
+::: {.column width="50%"}
+```{r}
+#| label: GLM data generation show part 2
+#| echo: true
+Alien2 |> slice(18:35) |> print(n = Inf)
+```
+:::
+:::
+
+## GLM --- model fitting: frequentist approach
+
+In practice, model parameters are \bluenorm{unknown}, so we have to estimate them\
+(God mode is again switched off)
+
+\vspace{1em}
+
+```{r}
+#| label: alien glm fake
+#| echo: true
+#| eval: false
+fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2, family = binomial(link = "logit"))
+summary(fit_alien_glm) # or coef(fit_alien_glm) for a focus on coefficients only
+```
+
+```{r}
+#| label: alien glm real
+#| echo: false
+#| size: scriptsize
+fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2,
+                     family = binomial(link = "logit"))
+summary(fit_alien_glm)
+```
+
+## GLM --- model fitting: Bayesian approach {brms}
+
+```{r}
+#| label: alien glm brms fake
+#| echo: true
+#| eval: false
+#| message: false
+fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
+                          family = bernoulli(link = "logit"))
+summary(fit_alien_glm_brms) # or fixef(fit_alien_lm_brms) for a focus on coefficients
+```
+
+```{=html}
+<!~~
+if compilation errors occur on the slide (e.g. cmath: No such file or directory),
+try re-rendering again
+~~>
+```
+
+```{r}
+#| label: alien glm brms real
+#| echo: false
+#| message: false
+#| cache: false
+fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
+                          family = bernoulli(link = "logit"),
+                          seed = 123,
+                          file = "cache_brms/fit_alien_glm_bmrs") # to store the compiled model (quick to rerun)
+summary(fit_alien_glm_brms)
+```
+
+## GLM --- model fitting: Bayesian approach with {nimble}
+
+```{r}
+#| label: alien glm nimble prep
+#| echo: true
+#| size: scriptsize
+
+code_glm <- nimbleCode({ 
+  # model mimicking the data generating process
+  for (i in seq_len(N)) {
+      departed[i] ~ dbinom(size = 1, prob = plogis(intercept + slope*humans_eaten[i]))
+  }
+  # prior
+  intercept ~ dnorm(mean = 0, sd = 2)
+  slope ~ dnorm(mean = 0, sd = 2)
+})
+
+constants <- list(N = nrow(Alien2),
+                  humans_eaten = Alien2$humans_eaten)
+
+inits <- list(intercept = mean(Alien2$departed), slope = 0)
+```
+
+## GLM --- model fitting: Bayesian approach (prior sanity check)
+
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+set.seed(123)
+n_sims2 <- 100
+prior_intercept2 <- rnorm(n = n_sims2, 
+                          mean = 0, sd = 2)
+prior_slope2 <- rnorm(n = n_sims2,
+                      mean = 0, sd = 2)
+
+expand_grid(sim = seq_len(n_sims2),
+            humans_eaten = seq(0, 6, by = 0.1)) |> 
+  mutate(prob = 1/(1 + exp(-
+     (prior_intercept2[sim] +
+      prior_slope2[sim]*humans_eaten)
+     ))) -> prior_pred2
+```
+:::
+::: {.column width="40%"}
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-height: 3cm
+ggplot(prior_pred2) +
+  geom_histogram(aes(x = prob))
+```
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-height: 3cm
+ggplot(prior_pred2) +
+  geom_line(aes(y = prob, x = humans_eaten, group = sim),
+            alpha = 0.5)
+```
+:::
+:::
 
 
 # Questions? {.unnumbered}
