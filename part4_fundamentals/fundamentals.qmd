@@ -2634,7 +2634,7 @@ for tree={
 
 \vspace{0.5cm}
 
-$P(\mathrm{cancer}|\oplus) = \frac{\mathrm{true\ positive}}{\mathrm{true\ positive} + \mathrm{false\ positive}} =  \frac{(1 - \beta) \times P(\mathrm{cancer})}{(1 - \beta) \times P(\mathrm{cancer}) + \alpha \times P(\mathrm{no\ cancer})}$
+$P(\mathrm{cancer}\mid\oplus) = \frac{\mathrm{true\ positive}}{\mathrm{true\ positive} + \mathrm{false\ positive}} =  \frac{(1 - \beta) \times P(\mathrm{cancer})}{(1 - \beta) \times P(\mathrm{cancer}) + \alpha \times P(\mathrm{no\ cancer})}$
 
 - to chain probabilities (i.e. "and") you need to multiply them
 - to combine probabilities (i.e. "or") you need to add them
@@ -2709,11 +2709,11 @@ for tree={
 
 \vspace{0.5cm}
 
-$P(\mathrm{absence}|\mathrm{not\ detected}) = \frac{\mathrm{true\ negative}}{\mathrm{true\ negative} + \mathrm{false\ negative}}$
+$P(\mathrm{absence}\mid\mathrm{not\ detected}) = \frac{\mathrm{true\ negative}}{\mathrm{true\ negative} + \mathrm{false\ negative}}$
 
-$P(\mathrm{absence}|\mathrm{not\ detected}) = \frac{(1 - p_{10}) \times (1 - \psi)}{(1 - p_{10})\times (1 - \psi) + (1 - p_{11})\times \psi}$
+$P(\mathrm{absence}\mid\mathrm{not\ detected}) = \frac{(1 - p_{10}) \times (1 - \psi)}{(1 - p_{10})\times (1 - \psi) + (1 - p_{11})\times \psi}$
 
-$P(\mathrm{absence}|\mathrm{not\ detected}) \sim \frac{1 \times (1 - \psi)}{1 \times (1 - \psi) + (1 - p_{11})\times \psi} = \frac{1-\psi}{1-p_{11}\psi}$ if $p_{10} \sim 0$
+$P(\mathrm{absence}\mid\mathrm{not\ detected}) \sim \frac{1 \times (1 - \psi)}{1 \times (1 - \psi) + (1 - p_{11})\times \psi} = \frac{1-\psi}{1-p_{11}\psi}$ if $p_{10} \sim 0$
 
 
 
@@ -2818,7 +2818,7 @@ for tree={
 
 \vspace{1em}
 
-$P(\mathrm{A}|\mathrm{B}) = \frac{P(\mathrm{B}|\mathrm{A})\times P(A)}{P(\mathrm{B}|\mathrm{A})\times P(A) + P(\mathrm{B}|\mathrm{\neg A})\times P(\neg A)}$
+$P(\mathrm{A}\mid\mathrm{B}) = \frac{P(\mathrm{B}\mid\mathrm{A})\times P(A)}{P(\mathrm{B}\mid\mathrm{A})\times P(A) + P(\mathrm{B}\mid\mathrm{\neg A})\times P(\neg A)}$
 
 \vspace{1em}
 
@@ -2828,7 +2828,7 @@ $P(\mathrm{A}|\mathrm{B}) = \frac{P(\mathrm{B}|\mathrm{A})\times P(A)}{P(\mathrm
 \begin{minipage}[c]{0.7\linewidth}
 \begin{callout}
 \centering
-$P(\mathrm{A}|\mathrm{B}) = \frac{P(\mathrm{B}|\mathrm{A})\times P(A)}{P(\mathrm{B})}$
+$P(\mathrm{A}\mid\mathrm{B}) = \frac{P(\mathrm{B}\mid\mathrm{A})\times P(A)}{P(\mathrm{B})}$
 \end{callout}
 \end{minipage}
 \end{center}
@@ -2879,15 +2879,15 @@ for tree={
 \vspace{1em}
 
 \centering
-$P(\theta|y) = \frac{P(y|\theta)\times P(\theta)}{P(y)}$
+$P(\theta\mid y) = \frac{P(y\mid\theta)\times P(\theta)}{P(y)}$
 
 \vspace{1em}
 
 \begin{center}
-\begin{minipage}[c]{0.7\linewidth}
+\begin{minipage}[c]{0.75\linewidth}
 \begin{callout}
 \centering
-$P(\theta|y) \propto P(y|\theta)\times P(\theta)$
+$P(\theta\mid y) \propto P(y\mid\theta)\times P(\theta)$
 \end{callout}
 \end{minipage}
 \end{center}
@@ -2905,18 +2905,18 @@ $\rightarrow$ the probability of the parameters given the data ($P(\theta|y)$), 
 
 \bluebold{MCMC}
 
-- the Bayesian framework plays along well with \blueit{MCMC samplers}, a class of algorithms that can estimate distributions numerically
+- \blueit{MCMC samplers} are a class of algorithms that can estimate distributions numerically & they are the tool that unleashed the potential of using Bayesian statistics in practice (kickstarted by the seminal paper Gelfand & Smith 1990)
 - given priors, MCMC samplers are used to \bluenorm{approximate} posterior distributions that are too complex or that have too many dimensions to be tackled analytically\
 (the situation of many models used to study biodiversity)
 
 . . .
 
-\bluebold{Metropolis algorithm} \bluenorm{(1953)}
+Let's focus on the \bluebold{Metropolis algorithm} \bluenorm{(1953)}
 
 - this is one of the simplest MCMC samplers
 - it illustrates several key ideas related to Bayesian inference using MCMC
 - it does not always perform well and modern software or packages use more modern (and more complex) MCMC samplers
-- a well-known slightly more modern algorithm (1970) directly related to this sampler is called the \blueit{Metropolis-Hastings} algorithm
+- several other MCMC algorithms directly relate to this sampler (e.g. Metropolis-Hastings)
 
 
 ## Bayesian statistics --- Metropolis algorithm (principles)
@@ -2931,7 +2931,7 @@ Algorithmic steps:
 \item<3-> propose a new parameter value $\theta'$ by adding a small random jump to the current $\theta$
 \item<4-> accept $\theta'$ if it increases the posterior density, otherwise accept it with a probability defined by the ratio of the posterior densities (i.e. $\dfrac{\mathrm{posterior}(\theta')}{\mathrm{posterior}(\theta)}$)
 \item<5-> if $\theta'$ is accepted, add it to the chain, otherwise add $\theta$ again
-\item<6-> repeat steps 3--5 until the chain reaches the target size
+\item<6-> repeat steps 3--5 until the chain reaches the target length
 \item<7-> drop the beginning of the chain (i.e. the \blueit{burn-in}) to remove the influence of starting values
 \item<8-> the remaining values in the chain are \blueit{samples from the posterior distribution}
 \end{enumerate}
@@ -2952,9 +2952,8 @@ Algorithmic steps:
 **NB:** 
 
 - the maximisation required in frequentist statistics to obtain point estimates is here replaced by a characterisation of the posterior distributions
-- this is possible because the algorithm does not require computing the normalising constant of the posterior\
-(the denominators of $\mathrm{posterior}(\theta')$ and $\mathrm{posterior}(\theta)$ cancel out in the ratio)
-- this feature applies to many MCMC samplers and explain the success of Bayesian statistics in Ecology & Conservation
+- it works because the algorithm need not computing the normalising constant of the posterior (the denominators of $\mathrm{posterior}(\theta')$ & $\mathrm{posterior}(\theta)$ cancel out in the ratio)
+- working around maximising the likelihood largely explains the success of Bayesian statistics in Ecology -- a field where observational data typically call for complex models (e.g. \blueit{state space models}, where some processes cannot be directly observed, as in \blueit{occupancy models})
 
 
 ## Bayesian statistics --- Metropolis algorithm (application)
@@ -2998,14 +2997,12 @@ tibble(y = y) |>
 #| echo: true
 my_prior_mu <- function(mu, log = TRUE) {
   # normal distribution
-  dnorm(x = mu, mean = 5, sd = 5,
-        log = log)
+  dnorm(x = mu, mean = 5, sd = 5, log = log)
 }
 
 my_prior_sd <- function(sd, log = TRUE) {
   # uniform distribution
-  dunif(x = sd, min = 0, max = 15,
-        log = log)
+  dunif(x = sd, min = 0, max = 15, log = log)
 }
 
 my_logPrior <- function(param) {
@@ -3030,7 +3027,7 @@ ggplot() +
     labs(y = "Density", x = expression(theta))
 ```
 
-**NB:** priors can be multiplied (their log added) because we consider them independent, which simplifies things and is valid here
+**NB:** priors can be multiplied (their log added) because we consider them independent, which simplifies things (no need from multivariate prior distribution) and is valid here
 :::
 :::
 
@@ -3125,7 +3122,7 @@ my_MCMC <- function(chain_length = 9999, starting_values = c(5, 0.1)) {
     for (i in seq_len(chain_length)) {
         param_candidate <- my_proposal(chain[i, ])
         proba_accept <- exp(my_logPosterior(param_candidate) -
-                              my_logPosterior(chain[i, ])) # = ratio of posterior densities
+                              my_logPosterior(chain[i, ])) # = ratio of post. densities
         if (runif(1) < proba_accept)
             chain[i + 1, ] <- param_candidate # new values accepted
         else
@@ -3158,7 +3155,7 @@ mcmc_trace(posterior_samples) # draw the chains
 
 Some clean up needs to occur:
 
-1. discarding the \blueit{burn-in} part of the chain
+- we need to discard the \blueit{warmup} (= \blueit{burn-in}) part of the chain
 
 ```{r}
 #| echo: true
@@ -3175,12 +3172,12 @@ mcmc_trace(posterior_no_burnin) # trace are better -> more fuzzy caterpillar out
 
 Some clean up needs to occur:
 
-1. discarding the \blueit{burn-in} part of the chain
-2. \blueit{thinning} the chain (i.e. down-sampling to reduce autocorrelation)
+- we need to discard the \blueit{warmup} (= \blueit{burn-in}) part of the chain
+- chains are strongly \blueit{autocorrelated}, so \blueit{thinning} the chain (i.e. down-sampling to reduce autocorrelation) is possible (to reduce memory footprint), but is usually not necessary (I still do it here to show you how to)
 
 ```{r}
 #| echo: true
-#| out-height: "4cm"
+#| out-height: "3cm"
 #| fig-align: center
 mcmc_acf(posterior_no_burnin)
 posterior_clean <- thin_draws(posterior_no_burnin, thin = 25)
@@ -3213,28 +3210,29 @@ mcmc_dens(posterior_clean)
 
 ## Bayesian statistics --- result checks
 
-Then one would need to check the following:
+For real applications, one would also need to check the following:
 
 \begin{small}
 \begin{itemize}
 \tightlist
+\item \blueit{prior predictive checks} $\rightarrow$ to verify that the priors can be used to simulate plausible data
 \item \blueit{acceptance rate} $\rightarrow$ to fine-tune the proposal function (not too high, not too low)
 \item \blueit{convergence of the chains} $\rightarrow$ use \blueit{trace plots} and diagnostics to ensure the algorithm reached the target distribution
 \item \blueit{effective sample size (ESS)} $\rightarrow$ to ensure you have enough independent samples after accounting for autocorrelation
 \item \blueit{sensitivity} to prior distribution $\rightarrow$ to make sure you did not introduce too much (or too little) information in them
-\item \blueit{posterior predictive checks} $\rightarrow$ to verify that the model can simulate data that looks like the real observations
+\item \blueit{posterior predictive checks} $\rightarrow$ to verify that the fitted model can simulate plausible data
 \end{itemize}
 \end{small}
 
 **NB:**
 
-\begin{footnotesize}
+\begin{small}
 \begin{itemize}
 \tightlist
-\item specific R packages exist to help you do that (e.g. \{posterior\}, \{bayesplot\})
-\item a good practice is to run several chains and compare them to make sure that all chains converge towards the same distribution (this is the basis of the Gelman-Rubin diagnostic)
+\item specific R packages exist to help you do that (e.g. \{posterior\}, \{bayesplot\}), and we will do some of that in the modelling part of the course
+\item run several chains (not just 1 as we did) since several diagnostics for convergence are based on their comparisons
 \end{itemize}
-\end{footnotesize}
+\end{small}
 
 
 ## Bayesian statistics --- summarising the results
@@ -3257,9 +3255,9 @@ quantile2(posterior_clean, probs = c(0.025, 0.975)) # 95% credible interval
 
 ## Bayesian statistics --- software
 
-You won't have to do as much programming as we just did:
+You won't have to do as much programming as we just did
 
-- for specific models, specific packages make it very easy to estimate posteriors (e.g. {rstanarm}, {brms}, {ubms})
+- for specific models, specific packages make it very easy to estimate posteriors (e.g. {brms}, {rstanarm}, {ubms})
 
 - multi-purpose packages also makes things easier, although you would have to write the model part yourself (e.g. {nimble}, {rstan}, {rjags})
 
@@ -3273,8 +3271,7 @@ Let's revisit our example of estimating the mean and SD of petal length of \emph
 library(nimble)
 ## create code object
 code <- nimbleCode({ 
-  # defining model
-  for (i in seq_len(N)) {
+  for (i in seq_len(N)) { # defining model
       y[i] ~ dnorm(mean = mu, sd = sigma)
   }
   # set priors
@@ -3298,7 +3295,8 @@ results_nimb <- nimbleMCMC(code = code,
                            constants = constants,
                            data = list(y = y),
                            inits = list(mu = 5, sigma = 0.1),
-                           nchains = 1, # 1 for trial, do more for real use (e.g 4)
+                           nchains = 4,
+                           setSeed = 1:4, # one seed per chain
                            progressBar = FALSE) # FALSE for not cluttering the slide
 ```
 
@@ -3326,11 +3324,13 @@ mcmc_trace(results_nimb_d)
 
 \bluenorm{Both are useful}
 
-- sometimes you have no choice (a model can be too complex for most frequentist machinery)
-- frequentist methods are generally faster and much easier to use (no prior elicitation needed)
+- often you have no choice\
+(a model can be too complex for most frequentist machinery)
+- frequentist methods are generally faster and easier to use\
+(no prior elicitation needed)
 - when the sample size is low, prior information can help the model converge faster and provides more stable estimates
 - convergence is not guaranteed when using MCMC (must be verified via diagnostics)
-- when the sample size is large, both should converge towards the same results since the influence of the prior decreases with $n$
+- when the sample size is large, Bayesian vs frequentist fits should converge towards the same results since the influence of the prior decreases with $n$
 
 
 ## Bayesian statistics --- Bayesian vs frequentist statistics
@@ -3340,7 +3340,7 @@ Marc Kéry & Andy Royle, "Applied Hierarchical Modeling in Ecology"\
 
 \vspace{1em}
 
-> \scriptsize "Are all HMs Bayesian models? No, not at all! Although in practice HMs are perhaps more often fit using Bayesian than non-Bayesian methods, there is nothing intrinsically Bayesian about an HM (Cressie and Wikle, 2011). In our books we use both likelihood and Bayesian methods to fit HMs. Indeed, we are a little weary of what we perceive as completely unnecessary trench wars between anti-Bayesians and Bayesians ... and we are very glad to note that they have ebbed down quite a bit during the last 2 decades. In such discussions, from the perspective of an applied statistical modeller, minute differences between the two approaches tend to be blown up completely out of proportion. We think that in practice the commonalities between non-Bayesian maximum likelihood and Bayesian inference are far, far greater than are their differences. Most of all, both likelihood and Bayesian inference are firmly rooted in the concept of a parametric statistical model, and in most practical applications the two will yield inferences that are numerically nearly indistinguishable. Of course, we do need to gloss over the major differences in the foundations of these methods... but we think that these are not something which will have to bother a non-statistician in most of his/her actual analyses. As a consequence, we firmly believe that both maximum likelihood and Bayesian methods are essential for applied statistical analysis, or applied data science, and the AHM project thoroughly reflects this view."
+> \footnotesize "Are all HMs Bayesian models? No, not at all! Although in practice HMs are perhaps more often fit using Bayesian than non-Bayesian methods, there is nothing intrinsically Bayesian about an HM (Cressie and Wikle, 2011). In our books we use both likelihood and Bayesian methods to fit HMs. Indeed, we are a little weary of what we perceive as completely unnecessary trench wars between anti-Bayesians and Bayesians ... and we are very glad to note that they have ebbed down quite a bit during the last 2 decades. In such discussions, from the perspective of an applied statistical modeller, minute differences between the two approaches tend to be blown up completely out of proportion. We think that in practice the commonalities between non-Bayesian maximum likelihood and Bayesian inference are far, far greater than are their differences. Most of all, both likelihood and Bayesian inference are firmly rooted in the concept of a parametric statistical model, and in most practical applications the two will yield inferences that are numerically nearly indistinguishable."
 
 
 # Learning more
@@ -3350,7 +3350,7 @@ Marc Kéry & Andy Royle, "Applied Hierarchical Modeling in Ecology"\
 \bluenorm{Useful reads}
 
 - [www.nature.com/collections/qghhqm/pointsofsignificance](https://www.nature.com/collections/qghhqm/pointsofsignificance)
-- van de Schoot et al. (2021) Bayesian statistics and modelling \emph{Nat Rev Methods} [doi.org/10.1038/s43586-020-00001-2](https://doi.org/10.1038/s43586-020-00001-2)
+- van de Schoot et al. (2021) Bayesian statistics and modelling \emph{Nat Rev Methods Primer} [doi.org/10.1038/s43586-020-00001-2](https://doi.org/10.1038/s43586-020-00001-2)
 
 \begin{center}
 \includegraphics[height=0.3\textheight]{figures/whitlock_book.jpg}
