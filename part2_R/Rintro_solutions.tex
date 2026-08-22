@@ -1,0 +1,764 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  ignorenonframetext,
+  aspectratio=169,
+  t]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\setbeamertemplate{frametitle continuation}{}
+\setbeamertemplate{itemize items}[circle]
+\usepackage{caption}
+\captionsetup{labelformat=empty, justification=centering}
+\usepackage{textpos}
+\setlength{\TPHorizModule}{1cm}
+\setlength{\TPVertModule}{1cm}
+\setbeamertemplate{footline}{%
+  \hfill\usebeamercolor[fg]{page number in head/foot}%
+  \usebeamerfont{page number in head/foot}%
+  \insertframenumber{} / \inserttotalframenumber\kern1em\vskip2pt%
+}
+\usepackage{xcolor}
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+
+\AtBeginSection[]{ % for centering the section slides since others are top aligned
+  \begin{frame}[c]
+  \centering
+  \Large\insertsectionhead
+  \end{frame}
+}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  pdftitle={Introduction to Basic and Advanced Statistical Modelling},
+  pdfauthor={Alexandre Courtiol},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{\texorpdfstring{Introduction to Basic and Advanced Statistical
+Modelling}{Introduction to Basic and Advanced Statistical Modelling}}
+\subtitle{\texorpdfstring{Using R (solutions to
+exercises)}{Using R (solutions to exercises)}}
+\author{Alexandre Courtiol}
+\date{}
+
+\begin{document}
+\frame{\titlepage}
+
+\renewcommand*\contentsname{Table of contents}
+\begin{frame}[allowframebreaks]
+  \frametitle{Table of contents}
+  \setcounter{tocdepth}{2}
+  \tableofcontents
+\end{frame}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\section{Reading data}\label{reading-data}
+
+\begin{frame}[fragile]{Practice 4}
+\protect\phantomsection\label{practice-4}
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\OtherTok{\textless{}{-}} \FunctionTok{read\_csv}\NormalTok{(}\StringTok{"data\_MHB/data{-}territories.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Rows: 1152306 Columns: 10
+-- Column specification ------------------------------------------------------------------
+Delimiter: ","
+chr (2): nameeg, namelt
+dbl (8): species_id, euring_id, samplearea_id, year, territories_visit_1, territories_...
+
+i Use `spec()` to retrieve the full column specification for this data.
+i Specify the column types or set `show_col_types = FALSE` to quiet this message.
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\section{Wrangling data}\label{wrangling-data}
+
+\begin{frame}[fragile]{Practice 5a}
+\protect\phantomsection\label{practice-5a}
+Use \texttt{select()} and/or \texttt{filter()} and/or \texttt{slice()}
+and/or \texttt{arrange()} to determine:
+
+\begin{enumerate}
+\tightlist
+\item
+  the largest number of recorded species across all years
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(n\_recorded\_species)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{slice}\NormalTok{(}\DecValTok{1}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(n\_recorded\_species)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+or
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(n\_recorded\_species }\SpecialCharTok{==} \FunctionTok{max}\NormalTok{(n\_recorded\_species)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(n\_recorded\_species)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 5b}
+\protect\phantomsection\label{practice-5b}
+Use \texttt{select()}, \texttt{filter()}, \texttt{slice()} and/or
+\texttt{arrange()} to determine:
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  the largest number of recorded species in 2025
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(year }\SpecialCharTok{==} \DecValTok{2025}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(n\_recorded\_species }\SpecialCharTok{==} \FunctionTok{max}\NormalTok{(n\_recorded\_species)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(n\_recorded\_species)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+but NOT this:
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(year }\SpecialCharTok{==} \DecValTok{2025}\NormalTok{, n\_recorded\_species }\SpecialCharTok{==} \FunctionTok{max}\NormalTok{(n\_recorded\_species)) }\SpecialCharTok{|\textgreater{}}
+    \FunctionTok{select}\NormalTok{(n\_recorded\_species)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+Do you understand why?
+\end{frame}
+
+\begin{frame}[fragile]{Practice 6a}
+\protect\phantomsection\label{practice-6a}
+Use the functions we have seen to obtain:
+
+\begin{enumerate}
+\tightlist
+\item
+  the range of median elevation according to the number of visits
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{median\_elevation\_min =} \FunctionTok{min}\NormalTok{(median\_elevation),}
+              \AttributeTok{median\_elevation\_max =} \FunctionTok{max}\NormalTok{(median\_elevation),}
+              \AttributeTok{.by =}\NormalTok{ n\_visits)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 2 x 3
+  n_visits median_elevation_min median_elevation_max
+     <dbl>                <dbl>                <dbl>
+1        3                  250                 2150
+2        2                 1450                 2750
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 6b}
+\protect\phantomsection\label{practice-6b}
+Use the functions we have seen to obtain:
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  the number of observations for \emph{Sturnus vulgaris} for each year
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(namelt }\SpecialCharTok{==} \StringTok{"Sturnus vulgaris"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{territories\_sum =} \FunctionTok{sum}\NormalTok{(territories\_total, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{), }\CommentTok{\# NAs present}
+              \AttributeTok{.by =}\NormalTok{ year)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 27 x 2
+   year territories_sum
+  <dbl>           <dbl>
+1  1999             691
+2  2000             920
+3  2001             911
+4  2002             887
+# i 23 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 6c}
+\protect\phantomsection\label{practice-6c}
+Use the functions we have seen to obtain:
+
+\begin{enumerate}
+\setcounter{enumi}{2}
+\tightlist
+\item
+  the 3 most recorded species for each year
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{territories\_sum =} \FunctionTok{sum}\NormalTok{(territories\_total),}
+              \AttributeTok{.by =} \FunctionTok{c}\NormalTok{(year, nameeg, namelt)) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# aggregate across samplearea\_id}
+    \FunctionTok{slice\_max}\NormalTok{(territories\_sum, }\AttributeTok{n =} \DecValTok{3}\NormalTok{, }\AttributeTok{by =}\NormalTok{ year) }\SpecialCharTok{|\textgreater{}} \CommentTok{\# pick top 3 per year}
+    \FunctionTok{select}\NormalTok{(year, nameeg, namelt, territories\_sum)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 81 x 4
+   year nameeg             namelt            territories_sum
+  <dbl> <chr>              <chr>                       <dbl>
+1  1999 Eurasian Chaffinch Fringilla coelebs            5775
+2  1999 Common Blackbird   Turdus merula                3132
+3  1999 Coal Tit           Periparus ater               3108
+4  2000 Eurasian Chaffinch Fringilla coelebs            6695
+# i 77 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 7}
+\protect\phantomsection\label{practice-7}
+Try to use \texttt{pivot\_longer()} to get back to the original long
+format of the data from the output of the following code:
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(year }\SpecialCharTok{==} \DecValTok{2025}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(samplearea\_id, nameeg, territories\_total) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{pivot\_wider}\NormalTok{(}\AttributeTok{names\_from =}\NormalTok{ nameeg, }
+                \AttributeTok{values\_from =}\NormalTok{ territories\_total) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{pivot\_longer}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{samplearea\_id,}
+                 \AttributeTok{names\_to =} \StringTok{"nameeg"}\NormalTok{,}
+                 \AttributeTok{values\_to =} \StringTok{"territories\_total"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 42,282 x 3
+  samplearea_id nameeg              territories_total
+          <dbl> <chr>                           <dbl>
+1           268 Little Grebe                        0
+2           268 Great Crested Grebe                 0
+3           268 Grey Heron                          0
+4           268 Little Bittern                      0
+# i 42,278 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\section{Wrangling spatial data}\label{wrangling-spatial-data}
+
+\begin{frame}[fragile]{Practice 8a}
+\protect\phantomsection\label{practice-8a}
+Use the functions we have seen to obtain:
+
+\begin{enumerate}
+\tightlist
+\item
+  the sampled area (sensu convex hull) across years
+\end{enumerate}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count\_sf }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{geometry =} \FunctionTok{st\_combine}\NormalTok{(geometry), }\AttributeTok{.by =}\NormalTok{ year) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{hull =} \FunctionTok{st\_convex\_hull}\NormalTok{(geometry),}
+           \AttributeTok{area =} \FunctionTok{st\_area}\NormalTok{(hull),}
+           \AttributeTok{area\_km2 =}\NormalTok{ units}\SpecialCharTok{::}\FunctionTok{set\_units}\NormalTok{(area, }\StringTok{"km\^{}2"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{hull) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{st\_drop\_geometry}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 27 x 3
+   year         area area_km2
+* <dbl>        [m^2]   [km^2]
+1  1999 48899915383.   48900.
+2  2000 48995663682.   48996.
+3  2001 48229824468.   48230.
+4  2002 48995663682.   48996.
+# i 23 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 8b (1)}
+\protect\phantomsection\label{practice-8b-1}
+Use the functions we have seen to obtain:
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  the IDs of the sampled areas which are most peripheral
+\end{enumerate}
+
+Simple sorting by distance to centroid (but lacks threshold)
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count\_sf }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{distinct}\NormalTok{(samplearea\_id, geometry) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{centroid =} \FunctionTok{st\_centroid}\NormalTok{(}\FunctionTok{st\_combine}\NormalTok{(geometry)),}
+         \AttributeTok{dist =} \FunctionTok{st\_distance}\NormalTok{(centroid, geometry, }\AttributeTok{by\_element =} \ConstantTok{TRUE}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(dist)) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{as\_tibble}\NormalTok{() }\CommentTok{\# (for slide only {-}\textgreater{} skip metadata clutter)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 267 x 4
+  samplearea_id            geometry            centroid    dist
+          <dbl>         <POINT [°]>         <POINT [°]>     [m]
+1           269 (6.110458 46.21013) (8.234991 46.79076) 174955.
+2           398 (10.40901 46.61099) (8.234991 46.79076) 166982.
+3           271 (6.184874 46.35493) (8.234991 46.79076) 164026.
+4           397 (10.34234 46.82876) (8.234991 46.79076) 160429.
+# i 263 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 8b (2)}
+\protect\phantomsection\label{practice-8b-2}
+More useful, but more complex: intersection with concave hull outline
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{species\_count\_sf }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{distinct}\NormalTok{(samplearea\_id, }\AttributeTok{.keep\_all =} \ConstantTok{TRUE}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{all\_points =} \FunctionTok{st\_combine}\NormalTok{(geometry), }\CommentTok{\# combine points into new geometry}
+         \AttributeTok{hull =} \FunctionTok{st\_concave\_hull}\NormalTok{(all\_points, }\AttributeTok{ratio =} \FloatTok{0.2}\NormalTok{), }\CommentTok{\# create concave hull}
+         \AttributeTok{perimeter =} \FunctionTok{st\_boundary}\NormalTok{(hull), }\CommentTok{\# extract outer line of the hull}
+         \AttributeTok{perimeter =} \FunctionTok{st\_buffer}\NormalTok{(perimeter, }\AttributeTok{dist =} \DecValTok{1000}\NormalTok{), }\CommentTok{\# create buffer zone around it}
+         \AttributeTok{on\_perim =} \FunctionTok{st\_intersects}\NormalTok{(perimeter, geometry, }\CommentTok{\# test if points fall into buffer}
+                                  \AttributeTok{by\_element =} \ConstantTok{TRUE}\NormalTok{)) }\OtherTok{{-}\textgreater{}}\NormalTok{ data\_perimeter\_sf }
+  
+\NormalTok{data\_perimeter\_sf }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(on\_perim) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{pull}\NormalTok{(samplearea\_id) }\CommentTok{\# pull() extracts a column}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+ [1] 269 271 273 277 278 279 282 283 286 289 291 294 302 307 308 311 323 325 340 352 359
+[22] 369 370 376 384 385 388 392 393 394 395 396 397 398 400 408 411 418 427 434 439 456
+[43] 460 461 462 469 475 476 478 502 503 515 522 525 531
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 8b (2)}
+\protect\phantomsection\label{practice-8b-2-1}
+More useful, but more complex: intersection with concave hull outline
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{theme\_set}\NormalTok{(}\FunctionTok{theme\_bw}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{20}\NormalTok{)) }\CommentTok{\# setting the theme for all plots}
+\FunctionTok{ggplot}\NormalTok{(data\_perimeter\_sf) }\SpecialCharTok{+}
+  \FunctionTok{geom\_sf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{geometry =}\NormalTok{ perimeter)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_sf}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{colour =}\NormalTok{ on\_perim)) }\CommentTok{\# geometry = geometry is implicit}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{Rintro_solutions_files/figure-beamer/unnamed-chunk-13-1.pdf}
+\end{center}
+
+\normalsize
+\end{frame}
+
+\section{Plotting data}\label{plotting-data}
+
+\begin{frame}[fragile]{Practice 10 (1)}
+\protect\phantomsection\label{practice-10-1}
+\begin{itemize}
+\tightlist
+\item
+  combine data wrangling and plotting to illustrate the change in
+  species abundance across years for the top 6 most encountered species
+\end{itemize}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{territories\_sum =} \FunctionTok{sum}\NormalTok{(territories\_total),}
+              \AttributeTok{.by =} \FunctionTok{c}\NormalTok{(nameeg, namelt)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{slice\_max}\NormalTok{(territories\_sum, }\AttributeTok{n =} \DecValTok{6}\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{pull}\NormalTok{(namelt) }\OtherTok{{-}\textgreater{}}\NormalTok{ top6sp}
+
+\NormalTok{top6sp}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] "Fringilla coelebs"       "Parus major"             "Troglodytes troglodytes"
+[4] "Phylloscopus collybita"  "Turdus viscivorus"       "Columba palumbus"       
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 10 (2)}
+\protect\phantomsection\label{practice-10-2}
+\begin{itemize}
+\tightlist
+\item
+  combine data wrangling and plotting to illustrate the change in
+  species abundance across years for the top 6 most encountered species
+\end{itemize}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{territories }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{filter}\NormalTok{(namelt }\SpecialCharTok{\%in\%}\NormalTok{ top6sp) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{summarise}\NormalTok{(}\AttributeTok{territories\_sum =} \FunctionTok{sum}\NormalTok{(territories\_total),}
+              \AttributeTok{.by =} \FunctionTok{c}\NormalTok{(nameeg, namelt, year)) }\OtherTok{{-}\textgreater{}}\NormalTok{ top6\_across\_time}
+
+\NormalTok{top6\_across\_time}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+# A tibble: 162 x 4
+  nameeg             namelt            year territories_sum
+  <chr>              <chr>            <dbl>           <dbl>
+1 Common Wood Pigeon Columba palumbus  1999             457
+2 Common Wood Pigeon Columba palumbus  2000             594
+3 Common Wood Pigeon Columba palumbus  2001             578
+4 Common Wood Pigeon Columba palumbus  2002             607
+# i 158 more rows
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 10 (3a)}
+\protect\phantomsection\label{practice-10-3a}
+\begin{itemize}
+\tightlist
+\item
+  combine data wrangling and plotting to illustrate the change in
+  species abundance across years for the top 6 most encountered species
+\end{itemize}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(top6\_across\_time) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y =}\NormalTok{ territories\_sum, }\AttributeTok{x =}\NormalTok{ year, }\AttributeTok{colour =}\NormalTok{ nameeg))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}
+\includegraphics[width=0.85\linewidth,height=\textheight,keepaspectratio]{Rintro_solutions_files/figure-beamer/unnamed-chunk-16-1.pdf}
+\end{center}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Practice 10 (3b)}
+\protect\phantomsection\label{practice-10-3b}
+\begin{itemize}
+\tightlist
+\item
+  combine data wrangling and plotting to illustrate the change in
+  species abundance across years for the top 6 most encountered species
+\end{itemize}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(top6\_across\_time) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{y =}\NormalTok{ territories\_sum, }\AttributeTok{x =}\NormalTok{ year)) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{ nameeg, }\AttributeTok{scales =} \StringTok{"free\_y"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{Rintro_solutions_files/figure-beamer/unnamed-chunk-17-1.pdf}
+\end{center}
+
+\normalsize
+\end{frame}
+
+
+
+
+\end{document}

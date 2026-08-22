@@ -4,6 +4,7 @@ subtitle: "Introduction"
 author: "Alexandre Courtiol"
 format:
    beamer:
+       keep-tex: true
        aspectratio: 169
        toc: true       
 header-includes: |
@@ -25,32 +26,30 @@ header-includes: |
 
 ## Why this workshop?
 
-**TODO:** have An create & perform this slide; also see if An needs an intro slide about himself
-
 ::: {.incremental}
-- Many local actors collect invaluable data on biodiversity in one of the most biodiversity-rich region in the world
+- Many local actors collect invaluable data on biodiversity in one of the most biodiversity-rich regions in the world
 - Much of these data remain unexploited and yet they could benefit both local conservation and the global scientific community
-- We believe one reason is that many local actors have limiting quantitative skills
+- We believe one reason is that many local actors have limited quantitative skills
 - This workshop aims at strengthening local capacity by training local actors
 :::
 
 
 ## The workshop structure
 
-### Module A: background knowledge in view of Module B
+### Module A: background knowledge to prepare for Module B
 
 - foundation of the R language
 - introduction to reproducible reporting workflows
 - review of core statistical concepts
-- introduction to Linear Models (LMs, GLMs, GLMMs)
+- introduction to Linear Models (LMs, GLMs)
 
 . . .
 
-### Module B: actual stuff you want
+### Module B: applied methods
 
 - single-species occupancy models 
 - community-level frameworks
-- predicting and mapping occurrence and richness across study across space
+- predicting and mapping occurrence and richness across the study area
 
 # About me, you & us
 
@@ -60,7 +59,7 @@ header-includes: |
 
 ::: {.column width="50%"}
 \centering
-**Module A**: Alexandre Courtiol
+**Module A**: Alexandre Courtiol\
 
 ```{r}
 #| out-height: "5cm"
@@ -71,7 +70,7 @@ knitr::include_graphics("figures/Alexandre_Courtiol.jpg", dpi = NA) # dpi = NA f
 
 ::: {.column width="50%"}
 \centering
-**Module B**: Rahel Sollmann
+**Module B**: Rahel Sollmann\
 
 ```{r}
 #| out-height: "5cm"
@@ -90,7 +89,7 @@ knitr::include_graphics("figures/Rahel_Sollmann.jpg", dpi = NA) # dpi = NA fix a
 - trained in evolution, ecology, demography and statistics
 - leader of a small research team tackling diverse questions about the life history and behaviour of mammals and birds ([www.datazoogang.de](https://www.datazoogang.de))
 - collaborator in many wildlife projects requiring quantitative skills
-- maintainer and co-developers of R packages (e.g. camtrapR, IsoriX...)
+- maintainer and co-developer of R packages (e.g. camtrapR, IsoriX...)
 - lecturer in data science & statistics
 :::
 <!-- I shall emphasize after that who I am not: conservationist, data collector-->
@@ -113,7 +112,7 @@ knitr::include_graphics(article_figs[order(years, decreasing = TRUE)])
 
 - slides are provided, so invest your time in thinking (not just writing)
 - try to learn actively (ask questions)
-- treat each others as equal
+- treat each other as equal
 - there is no dumb question
 - avoid using LLMs unless instructed otherwise
 
@@ -139,6 +138,6 @@ knitr::include_graphics("figures/Culture_map_FR_VN.png")
 | Day 1 | Aug. 24  | Introduction + R language          | R language    |
 | Day 2 | Aug. 25  | Reproducible reporting + Practice  | Core concepts |
 | Day 3 | Aug. 26  | Core concepts                      | Linear Models |
-| Day 4 | Aug. 27  | LMs                                | GLMs, LMMs    |
+| Day 4 | Aug. 27  | Linear Models                      | Linear Models |
 
 # Questions?  {.unnumbered .unlisted}

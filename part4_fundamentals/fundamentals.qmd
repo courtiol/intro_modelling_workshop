@@ -4,7 +4,7 @@ subtitle: "Fundamentals of statistics"
 author: "Alexandre Courtiol"
 format:
    beamer:
-       keep-tex: false
+       keep-tex: true
        aspectratio: 169
        toc: true
        classoption: t
@@ -172,7 +172,7 @@ next_practice <- function(counter = NULL) {
 \bluebold{Goals of statistics}
 \begin{itemize}
 \item mediates between a \blueit{sample} and the \blueit{population}
-\item provides methods to draw as many conclusions as precisely as possible with as minimum \blueit{sampling effort} as possible
+\item provides methods to draw as many conclusions as precisely as possible with as little \blueit{sampling effort} as possible
 \end{itemize}
 \end{callout}
 }
@@ -2094,7 +2094,7 @@ One-sided hypotheses are \bluenorm{easier to reject} $\rightarrow$ use one-sided
 \bluebold{Refined interpretation}\\
 $p>0.05$ doesn't mean there is no effect\\
 $\rightarrow$ your data are equally compatible with the effect going the other way\\
-$\rightarrow$\bluenorm{you cannot yet tell the direction of the true effect!}
+$\rightarrow$ \bluenorm{you cannot yet tell the direction of the true effect!}
 \end{callout}
 
 
@@ -3374,7 +3374,7 @@ Marc Kéry & Andy Royle, "Applied Hierarchical Modeling in Ecology"\
 
 . . .
 
-- accept the fact that much of the research findings is false, but contribute to build better science with your newly acquired or refreshed statistical knowledge
+- accept the fact that much of the research findings are false, but contribute to building better science with your newly acquired or refreshed statistical knowledge
 
 \begin{center}
 \begin{figure}

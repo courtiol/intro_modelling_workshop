@@ -4,6 +4,7 @@ subtitle: "Making workflows reproducible"
 author: "Alexandre Courtiol"
 format:
    beamer:
+       keep-tex: true
        aspectratio: 169
        toc: true
        classoption: t
@@ -79,12 +80,12 @@ Reproducibility is best seen as a continuum within a multidimensional space:
 
 **NB:**
 
-- names are my own (many synonymous exist)
-- improving any dimension takes intentional time/effort and introduce trade-offs (e.g. improving generalisability decreases clarity)
+- names are my own (many synonyms exist)
+- improving any dimension takes intentional time/effort and introduces trade-offs (e.g. improving generalisability decreases clarity)
 - in this very short introduction, I focus on **repeatability**
 
 
-# Why making workflows reproducible?
+# Why make workflows reproducible?
 
 ## Increasing reproducibility benefits people
 
@@ -128,14 +129,14 @@ Given that reproducibility comes at a cost, the main question to answer is:
 In comparison to just producing results on the fly (i.e. taken from the R console), writing repeatable scripts/documents provides the following benefits:
 
 - it prevents coding mistakes
-- exactly what you did is tracked^[a repeatable code tracks what code does but not how the code changed over time;\
- the latter can instead can be done using a version control system, such as git/GitHub]
+- exactly what you did is tracked^[repeatable code tracks what code does but not how the code changed over time;\
+ the latter can instead be done using a version control system, such as git/GitHub]
 - updating the results after updating the data is easy
 
 
 # How to make workflows repeatable?
 
-## Various approach can be used to improve repeatability of R-based workflows
+## Various approaches can be used to improve repeatability of R-based workflows
 
 ```{r}
 #| echo: false
@@ -242,7 +243,7 @@ editor_options:
 The header is a particularly fragile component
 
 - spacing matters
-- copy/pasting headers across documents usually leads to unattended changes
+- copy/pasting headers across documents usually leads to unintended changes
 - current version(s?) of RStudio sometimes delete lines from the headers automatically (bug)
 - much of the content must be tailored to the selected output format
 
@@ -315,7 +316,7 @@ species_count |> filter(year == 2025)
 - **transparency**: document *why* you do things and not just *how* you do things
 - **accessibility**: host your data and code on platforms such as GitHub, Zenodo, ...
 - **compatibility**: make sure to try your code on other computers
-- **sustainability**: minimize external dependencies; at minima document package version using `sessionInfo()`, or better use systems such as {renv} which save and load specific versions of R packages; for longer sustainability learn how to build containers (e.g. docker)
+- **sustainability**: minimize external dependencies; at a minimum document package versions using `sessionInfo()`, or better use systems such as {renv} which save and load specific versions of R packages; for longer sustainability learn how to build containers (e.g. docker)
 - **generalisability**: design functions, do not hardcode parameters, do not use indices
 :::
 

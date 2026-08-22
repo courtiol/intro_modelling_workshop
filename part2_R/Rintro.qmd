@@ -4,6 +4,7 @@ subtitle: "Using R"
 author: "Alexandre Courtiol"
 format:
    beamer:
+       keep-tex: true
        aspectratio: 169
        toc: true       
 header-includes: |
@@ -22,6 +23,12 @@ header-includes: |
   \usepackage{xcolor}
   \let\oldtexttt\texttt
   \renewcommand{\texttt}[1]{\colorbox{gray!20}{\oldtexttt{#1}}}
+  
+  % highlights
+  \definecolor{bluebeamer}{HTML}{3333B3}
+  \newcommand{\bluenorm}[1]{\textcolor{bluebeamer}{#1}}
+  \newcommand{\blueit}[1]{\textcolor{bluebeamer}{\emph{#1}}}
+  \newcommand{\bluebold}[1]{\textcolor{bluebeamer}{\textbf{#1}}}
 editor_options: 
   chunk_output_type: console
 ---
@@ -101,7 +108,7 @@ Let's install the following R packages:
 
 - I will try to use {} consistently to indicate that something is a package
 - installing a package is only required once, unless you want to update the package or unless you installed a new version of R
-- I recommend using RStudio for installing packages rather than writing code since you don't want to keep running the installation
+- I recommend using RStudio for installing packages to avoid running the installation code every time you restart your session
 
 
 # Reading data
@@ -132,7 +139,7 @@ knitr::include_graphics("figures/MHB.png", dpi = NA)
 **Pro tips:**
 
 - you can use `getwd()` to check where your project folder is located
-- this could be down using R code, but it is not necessary, nor useful here
+- this could be done using R code, but it is not necessary, nor useful here
 
 
 ## Activating the {tidyverse}
@@ -254,7 +261,7 @@ species_count |> select(samplearea_id, year, n_recorded_species)
 
 - you can use `-column_name` to drop a column called `column_name`
 - you can use selection helpers (e.g. `contains()`, `starts_with()`) to select columns using name patterns
-- you can use test(s) on column values to select (`where()`)
+- you can use test(s) on column values to select them (`where()`)
 
 
 ## A few words about the pipe `|>`
@@ -288,6 +295,8 @@ You can use `select()` to choose one column, but it will remain a table (technic
 #| message: true
 species_count |> select(n_recorded_species)
 ```
+
+. . .
 
 Instead `pull()` creates a vector, which can be easier to work with:
 ```{r}
@@ -470,7 +479,7 @@ species_count |>
 ```
 
 
-## Grouping operations
+## Operations within groups
 
 ```{r}
 #| echo: true
@@ -573,6 +582,7 @@ Let's create an "site x species" detection table for 2025:
 ```{r}
 #| echo: true
 #| message: true
+#| size: scriptsize
 territories |> 
     filter(year == 2025) |> 
     select(samplearea_id, nameeg, territories_total) |> 
@@ -622,6 +632,7 @@ species_count |>
 ```{r}
 #| echo: true
 #| message: true
+#| size: scriptsize
 species_count_sf
 ```
 
@@ -636,6 +647,7 @@ species_count_sf
 ```{r}
 #| echo: true
 #| message: true
+#| size: scriptsize
 species_count_sf |> 
     summarise(geometry = st_combine(geometry)) |> # all points are brought together
     mutate(hull = st_convex_hull(geometry), # create shapes encompassing all points
@@ -648,7 +660,7 @@ species_count_sf |>
 . . .
 
 - the syntax `namespace::function` allows one to use a function from a package without calling `library()`
-- you must use `st_drop_geometry()` to drop the geometry column from a sf collection; `select()` won't work because `geometry` is a protected column
+- you must use `st_drop_geometry()` to drop the geometry column from a sf collection; `select()` does not remove the protected geometry column
 
 
 ## Computing the distance of each site to the center of the studied area
@@ -656,6 +668,7 @@ species_count_sf |>
 ```{r}
 #| echo: true
 #| message: true
+#| size: scriptsize
 species_count_sf |> 
   distinct(samplearea_id, geometry) |> 
   mutate(centroid = st_centroid(st_combine(geometry)),
@@ -898,7 +911,7 @@ ggplot(species_count) +
 
 ## What is base R?
 
-### this is not base R (it relies on {tidyverse}, an external R package)
+### This is not base R (it relies on {tidyverse}, an external R package)
 ```{r}
 #| echo: true
 #| message: true
@@ -909,7 +922,7 @@ species_count |>
 
 ## What is base R?
 
-### this is typical base R (it does not rely on an external R package)
+### This is typical base R (it does not rely on an external R package)
 ```{r}
 #| echo: true
 #| message: true
@@ -930,7 +943,7 @@ head(results, n = 3)
 
 ## What is base R?
 
-### but this is also base R (and a little closer to {tidyverse} in spirit)
+### But this is also base R (and a little closer to {tidyverse} in spirit)
 ```{r}
 #| echo: true
 #| message: true
@@ -946,12 +959,36 @@ head(results, n = 3)
 
 - there are often plenty of alternatives to achieve the same output
 
+## Some key objects in base R
+
+\tiny
+
+| object              | typical number of dimensions | content restriction                     | usage example                  |
+|:--------------------|:----------------------------:|:----------------------------------------|:-------------------------------|
+| the \blueit{vector} | 1                            | all elements must have same type        | storing data for a variable    |
+| the \blueit{list}   | tree-like structure          | each list can be anything               | output of model fit            |
+| the \blueit{matrix} | 2                            | elements must have same type everywhere | design matrix of a linear model|
+| the \blueit{array}  | N                            | elements must have same type everywhere | posteriors in Bayesian analyses|
+| the \blueit{data frame} or \blueit{tibble} | 2     | elements must have same type in a column| input data for a model         |
+
+\vspace{1em}
+
+. . .
+
+\small
+
+**NB:**
+
+- the different objects are generally created by functions, so you won't have to worry about creating them
+- what you need to worry about is how to extract information from each of those objects
+
+
 
 ## Extracting elements from vectors
 ```{r}
 #| echo: true
 #| message: true
-some_vector <- letters
+some_vector <- letters # we create a small vector
 some_vector
 some_vector[c(1, 12, 5, 24)]
 some_vector[some_vector %in% c("a", "l", "e", "x")]
@@ -965,7 +1002,7 @@ some_namedvector["b"]
 ```{r}
 #| echo: true
 #| message: true
-some_list <- list(1, 1:5)
+some_list <- list(1, 1:5) # we create a small list
 some_list
 some_list[2]
 some_list[[2]]
@@ -976,7 +1013,7 @@ some_list[[2]][2]
 ```{r}
 #| echo: true
 #| message: true
-some_namedlist <- list(a = 1, b = 1:5)
+some_namedlist <- list(a = 1, b = 1:5)# we create a small named list
 some_namedlist["b"]
 some_namedlist[["b"]]
 some_namedlist$b
@@ -987,7 +1024,7 @@ some_namedlist$b
 ```{r}
 #| echo: true
 #| message: true
-some_matrix <- matrix(1:9, nrow = 3)
+some_matrix <- matrix(1:9, nrow = 3) # we create a small matrix
 some_matrix
 some_matrix[2, ]
 some_matrix[, 2]
@@ -1008,14 +1045,70 @@ some_matrix[cbind(c(1, 3), c(1, 3))]
 ```{r}
 #| echo: true
 #| message: true
-colnames(some_matrix) <- paste0("col_", 1:3)
-rownames(some_matrix) <- paste0("row_", 1:3)
+colnames(some_matrix) <- paste0("col_", 1:3) # we name the columns
+rownames(some_matrix) <- paste0("row_", 1:3) # we name the rows
 some_matrix
 some_matrix["row_2", "col_3"]
 ```
 
+## Extracting elements from arrays
+```{r}
+#| echo: true
+#| message: true
+some_array <- array(1:30, dim = c(5, 3, 2)) # we create a small 3D array
+```
+::: columns
+::: {.column width="33%"}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+some_array
+```
+:::
+::: {.column width="33%"}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+some_array[2, , ] # rows
+```
+\vspace{1em}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+some_array[, 2, ] # columns
+```
+:::
+::: {.column width="33%"}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+some_array[, , 2] # depth
+```
+\vspace{1em}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+some_array[2, 2, 2] # cell
+```
+\vspace{1em}
+```{r}
+#| echo: true
+#| message: true
+#| size: scriptsize
+#| results: hold
+some_array[2, , 2] # row 2
+                   # at depth 2
+```
+:::
+:::
 
-## Extracting elements from data.frames / tibbles
+
+## Extracting elements from data frames / tibbles
 
 ```{r}
 #| echo: true
@@ -1024,7 +1117,7 @@ species_count[1, ]
 species_count[, 1]
 ```
 
-## Extracting elements from data.frames / tibbles
+## Extracting elements from data frames / tibbles
 
 ```{r}
 #| echo: true
@@ -1033,7 +1126,7 @@ species_count[, "year"]
 species_count["year"]
 ```
 
-## Extracting elements from data.frames / tibbles
+## Extracting elements from data frames / tibbles
 
 ```{r}
 #| echo: true
@@ -1067,7 +1160,8 @@ Check the following on your own time:
 
 ## When and what to update
 
-- update R packages regularly using the RStudio "Packages tab" (at least once a month)
+- update R packages regularly using the RStudio "Packages tab"\
+(at least once a month)
 - update R a few times a year:\
 check [www.r-project.org](https://www.r-project.org) (May and October tend to be good times)
 - update RStudio at least after each update of R
@@ -1080,7 +1174,7 @@ check [www.r-project.org](https://www.r-project.org) (May and October tend to be
 - don't forget that functions have help pages associated to them
 - R for Data Science free book: [r4ds.hadley.nz](https://r4ds.hadley.nz)
 - there is an active Slack channel: [dslc.io](https://dslc.io)
-- talk to each others
+- talk to each other
 - LLMs?\
 if you do, don't blindly copy/paste, and beware:\
 LLMs make mistakes and make things up
@@ -1089,8 +1183,8 @@ LLMs make mistakes and make things up
 ## Getting better
 
 - learn "base R" too (e.g. [cran.r-project.org/doc/manuals/r-release/R-intro.html](https://cran.r-project.org/doc/manuals/r-release/R-intro.html))
-- try to understand why things do not behave as you expect by experimenting\
-avoid to always use a workaround
+- try to understand why things do not behave as you expect by experimenting &\
+avoid always using a workaround
 - do use LLMs to review your code (rather than to create it)\
 the more you know, the more LLMs will be helpful to you!
 

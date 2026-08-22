@@ -1,6 +1,6 @@
 ---
 title: "Introduction to Basic and Advanced Statistical Modelling"
-subtitle: "From LM to GLMM"
+subtitle: "From LM to GLM"
 author: "Alexandre Courtiol"
 format:
    beamer:
@@ -142,7 +142,7 @@ an approximate description of the \blueit{data generating process}, i.e. an appr
 
 In particular, it helps
 
-- interpreting correctly model parameters
+- correctly interpreting model parameters
 - planning sample size before data collection
 - testing the coverage of confidence intervals (i.e. do they work as intended)
 - testing the robustness of the statistical test (i.e. check the rate of false positives)
@@ -162,7 +162,7 @@ a data generating process produced by a \blueit{linear function}: the data are g
 
 **NB:**
 
-- linear models encompass the classic linear regression which forms a straight line, but also many other models (e.g. polynomials are linear and yet do not form straight lines)
+- linear models encompass the classic linear regression which forms a straight line, but also many other models (e.g. polynomials are linear and yet do not form straight lines) $\rightarrow$ LM are linear in parameters (not necessarily in variables)
 - much of the difficulty people encounter when dealing with more complex models (e.g. Generalised Linear Models, Linear Mixed-effects Models, Hierarchical Models) is often caused by not having sufficiently understood the LM
 
 
@@ -676,7 +676,7 @@ ggplot(data = Alien) +
   labs(x = "No. of humans eaten", y = "Alien size (cm)") +
   theme_classic() +
   theme(legend.position = "none",
-        axis.title.y = element_text(vjust = -22),
+        axis.title.y = element_text(vjust = -22, hjust = 0.6),
         plot.background = element_blank(),
         panel.background = element_blank(),
         axis.title = element_text(size = 20, colour = "black"),
@@ -815,7 +815,7 @@ humans_eaten_possible <- min(Alien$humans_eaten):max(Alien$humans_eaten)
 
 expand_grid(prior, humans_eaten = humans_eaten_possible) |>
   mutate(size = intercept[sim] + slope[sim]*humans_eaten,
-         resp = size + rnorm(n = length(sim), 0, sigma[sim])) -> prior_pred
+         resp = size + rnorm(n = n(), 0, sigma[sim])) -> prior_pred
 
 ggplot(prior_pred, aes(x = humans_eaten, y = size)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -928,7 +928,7 @@ mcmc_trace(fit_alien_lm_nimb) # not mcmc_plot which only is for {brms}
 #| out-height: 3.5cm
 #| fig-align: center
 #| fig-width: 24
-#| fig-height: 6
+#| fig-height: 5
 mcmc_trace(fit_alien_lm_nimb)
 ```
 
@@ -981,11 +981,11 @@ After fitting the model, let's make sure our posterior are not off
 posterior1 <- tibble(
   intercept = fit_alien_lm_nimb_d[, 1, "intercept", drop = TRUE],
   slope = fit_alien_lm_nimb_d[, 1, "slope", drop  = TRUE],
-  error = rnorm(n = length(fit_alien_lm_nimb_d[,1 , 1]),
-                sd = fit_alien_lm_nimb_d[, 1, "sigma", drop = TRUE]))
+  sigma = fit_alien_lm_nimb_d[, 1, "sigma", drop = TRUE])
 
 expand_grid(posterior1, humans_eaten = Alien$humans_eaten) |> 
-  mutate(pred = intercept + slope * humans_eaten + error) -> pred1
+  mutate(error = rnorm(n = n(), mean = 0, sd = sigma),
+         pred = intercept + slope * humans_eaten + error) -> pred1
 
 ggplot() +
   geom_density(aes(x = pred, after_stat(density),
@@ -1162,7 +1162,7 @@ Interpreting the meaning of \blueit{regression coefficients} (= \blueit{paramete
 
 ::: {.incremental}
 - coefficients mediate the relationship between the statistics and the biology
-- tests, SE, confidence intervals and prediction intervals, all focus on such coefficients
+- tests, SE, confidence intervals and prediction intervals, all focus on these coefficients
 - different software and packages may influence aspects (contrasts, scale) that impact the meaning of the coefficients
 - most scientists fail to do so correctly, jeopardising the conclusions drawn in many publications
 :::
@@ -1388,10 +1388,9 @@ prior <- tibble(sim = seq_len(n_sims),
               
 flipper_len_z_possible <- -3:3
 
-expand_grid(prior,
-            flipper_len_z = flipper_len_z_possible) |>
-  mutate(body_mass_z = intercept[sim] + slope[sim]*flipper_len_z
-         ) -> prior_pred
+expand_grid(prior, flipper_len_z = flipper_len_z_possible) |>
+  mutate(
+    body_mass_z = intercept[sim] + slope[sim]*flipper_len_z) -> prior_pred
 
 ggplot(prior_pred, aes(flipper_len_z, body_mass_z)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -2364,9 +2363,9 @@ estimate_link(fit_bird_glm) |>
 ::: {.column width="40%"}
 \bluebold{Interpretation}
 
-- on average, \blueit{the log number of territories} is `{r} coef(fit_bird_glm)[["(Intercept)"]]` when the median elevation is 0m and the number of visit is 0
-- on average, every additional meter in median elevation increases \blueit{the log number of territories} by `{r} coef(fit_bird_glm)[["median_elevation"]]`
-- on average, every additional visit increases \blueit{the log number of territories} by `{r} coef(fit_bird_glm)[["n_visits"]]`
+- on average, \blueit{the log number of territories} is `{r} signif(coef(fit_bird_glm)[["(Intercept)"]], 3)` when the median elevation is 0m and the number of visit is 0
+- on average, every additional meter in median elevation increases \blueit{the log number of territories} by `{r} signif(coef(fit_bird_glm)[["median_elevation"]], 3)`
+- on average, every additional visit increases \blueit{the log number of territories} by `{r} signif(coef(fit_bird_glm)[["n_visits"]], 3)`
 :::
 :::
 
@@ -2394,7 +2393,7 @@ estimate_relation(fit_alien_glm,
 ::: {.column width="40%"}
 \bluebold{Interpretation}
 
-- on average, every additional human eaten increases \blueit{the odds of departure} $e^{\text{slope}}=$ `{r} exp(coef(fit_alien_glm)[["humans_eaten"]])` \blueit{fold}
+- on average, every additional human eaten increases \blueit{the odds of departure} $e^{\text{slope}}=$ `{r} signif(exp(coef(fit_alien_glm)[["humans_eaten"]]), 3)` \blueit{fold}
 :::
 :::
 
@@ -2421,9 +2420,9 @@ estimate_relation(fit_bird_glm) |>
 ::: {.column width="40%"}
 \bluebold{Interpretation}
 
-- on average, every additional meter in median elevation increases the number of territories by $100 \times (e^{\text{slope}}-1)=$ `{r} 100*(exp(coef(fit_bird_glm)[["median_elevation"]])-1)`\blueit{\%}, i.e. decreases it by $100\times (1 - e^{\text{slope}})=$ `{r} 100*(1-exp(coef(fit_bird_glm)[["median_elevation"]]))`\blueit{\%}
+- on average, every additional meter in median elevation increases the number of territories by $100 \times (e^{\text{slope}}-1)=$ `{r} signif( 100*(exp(coef(fit_bird_glm)[["median_elevation"]])-1), 3)`\blueit{\%}
 
-- on average, every additional 1000 meter in median elevation increases the number of territories by $100 \times (e^{ \text{slope}\times1000}-1)=$ `{r} 100*(exp(coef(fit_bird_glm)[["median_elevation"]]*1000)-1)`\blueit{\%}, i.e. decreases it by $100\times (1 - e^{\text{slope}\times1000})=$ `{r} 100*(1-exp(coef(fit_bird_glm)[["median_elevation"]]*1000))`\blueit{\%}
+- on average, every additional 1000 meter in median elevation increases the number of territories by $100 \times (e^{ \text{slope}\times1000}-1)=$ `{r} signif(100*(exp(coef(fit_bird_glm)[["median_elevation"]]*1000)-1), 3)`\blueit{\%}
 :::
 :::
 
