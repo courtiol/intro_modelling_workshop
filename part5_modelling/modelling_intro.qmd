@@ -721,9 +721,10 @@ mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be prod
 #| fig-height: 6
 library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien, seed = 123,
-                         file = "cache_brms/fit_alien_lm_brms") # storing the compiled model 
-                                                                # makes it quick to rerun
-                                                                # but dangerous if something changes
+                         file = "cache_brms/fit_alien_lm_brms",
+                         file_refit = "on_change") # storing the compiled model 
+                                                   # makes it quick to rerun
+                                                   
 mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be produced
 ```
 
@@ -2059,7 +2060,8 @@ fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
                           family = bernoulli(link = "logit"),
                           seed = 123,
                           iter = 10000,
-                          file = "cache_brms/fit_alien_glm_brms") # to store the compiled model (quick to rerun)
+                          file = "cache_brms/fit_alien_glm_brms",
+                          file_refit = "on_change")
 summary(fit_alien_glm_brms)
 ```
 
@@ -2427,6 +2429,269 @@ estimate_relation(fit_bird_glm) |>
 :::
 
 # Tests
+
+## Tests --- main testing strategies
+
+\scriptsize
+
+| Context | Frequentist approach | Bayesian approach |
+|---|---|---|
+| **compare non-nested** (not a *proper* test) | AIC / BIC | BF / LOO-CV or WAIC comparison|
+| **compare two nested models** (general) |  F-test (for LM) / LRT (for GLM$^*$)  | BF / LOO-CV or WAIC comparison / PIP |
+| special case: **model vs null model** | F-test (for LM) / LRT (for GLM$^*$) of full vs intercept-only | BF / LOO-CV or WAIC comparison / PIP |
+| special case: **overall effect of a variable**| F-test (for LM) / LRT (for GLM$^*$) of full vs variable dropped | BF / LOO-CV or WAIC comparison / PIP |
+| **coefficient vs a fixed value** (usually 0) | Wald t/z-test$^{**}$ (for LM/GLM$^*$) on the coefficient |  BF (Savage-Dickey) / credible interval / PIP |
+
+\vspace{-1em}
+
+$^*$ GLM with quasi family (i.e. $\phi\neq1$), should be dealt with as an LM\
+$^{**}$ Wald tests perform poorly for small samples or parameters near a boundary, and alternatives exist (e.g. parametric bootstrap)
+
+\vspace{1em}
+
+::: columns
+::: {.column width="50%"}
+. . .
+
+\textbf{Technical vocabulary:}
+
+- AIC = Akaike information criterion
+- BIC = Bayesian information criterion
+- BF = Bayes factor
+- LOO-CV = leave one out cross validation
+- WAIC = widely applicable information criterion = Watanabe–Akaike information criterion
+- LRT = likelihood ratio test
+- PIP = posterior inclusion probability
+:::
+::: {.column width="50%"}
+. . .
+
+**NB:**
+
+- whatever you do, the response variable data must be strictly identical (beware of values dropped automatically due to NAs in predictors)
+- to reduce false positives, perform tests in the following order: full vs null $\rightarrow$ full vs variable dropped $\rightarrow$ coefficient vs a fixed value
+:::
+:::
+
+## Tests --- example of comparison of 2 nested models
+
+\textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
+
+F-test testing H0 that the variance explained by the 2 LMs is the same
+```{r}
+#| echo: true
+fit_alien_lm      <- lm(size ~ humans_eaten, data = Alien)
+fit_alien_lm_null <- lm(size ~ 1, data = Alien)
+anova(fit_alien_lm, fit_alien_lm_null)
+```
+
+. . . 
+
+\bluebold{Interpretation:} we significantly reject the null model in favour of the first model
+
+
+## Tests --- example of comparison of 2 nested models
+
+\textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
+
+Bayes factor comparing 2 LM using {brms} (simple but wrong)
+```{r}
+#| echo: true
+#| eval: false
+fit_alien_lm_brms      <- brm(size ~ humans_eaten, data = Alien)
+fit_alien_lm_brms_null <- brm(size ~ 1, data = Alien)
+BF_lm <- bayes_factor(fit_alien_lm_brms, fit_alien_lm_brms_null)
+BF_lm$bf
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| results: hide
+fit_alien_lm_brms      <- brm(size ~ humans_eaten, data = Alien, seed = 123,
+                              file = "cache_brms/fit_alien_lm_brms",
+                              file_refit = "on_change")
+fit_alien_lm_brms_null <- brm(size ~ 1, data = Alien, seed = 123,
+                              file = "cache_brms/fit_alien_lm_brms_null",
+                              file_refit = "on_change")
+BF_lm <- bayes_factor(fit_alien_lm_brms, fit_alien_lm_brms_null)
+BF_lm$bf
+```
+
+```{r}
+#| echo: false
+#| eval: true
+BF_lm$bf
+```
+
+. . .
+
+\bluebold{Interpretation:} the observed data are `{r} round(BF_lm$bf, 1)` times more likely under our first LM than under the null model
+
+\bluebold{BUT} there is unfortunately a problem, unlike posteriors which should not be too sensitive to priors, the Bayes factor is, and the default priors in {brms} are vague and improper which makes them unsuitable for the task
+
+
+## Tests --- example of comparison of 2 nested models
+
+\textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
+
+Bayes factor comparing 2 LM using {brms} (prior fix)
+```{r}
+#| echo: true
+#| eval: false
+#| size: scriptsize
+priors_brms2 <- c(prior(normal(0, 5), class = "b"),
+                  prior(normal(50, 5), class = "Intercept"),
+                  prior(uniform(0, 5), class = "sigma", ub = 5))
+
+fit_alien_lm_brms2      <- brm(size ~ humans_eaten, data = Alien, prior = priors_brms2)
+fit_alien_lm_brms_null2 <- brm(size ~ 1, data = Alien, prior = priors_brms2[2:3, ])
+BF_lm2 <- bayes_factor(fit_alien_lm_brms2, fit_alien_lm_brms_null2)
+BF_lm2$bf
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| results: hide
+priors_brms2 <- c(prior(normal(0, 5), class = "b"),
+                  prior(normal(50, 5), class = "Intercept"),
+                  prior(uniform(0, 5), class = "sigma", ub = 5))
+
+fit_alien_lm_brms2 <- brm(size ~ humans_eaten, data = Alien,
+                          prior = priors_brms2, seed = 123,
+                          file = "cache_brms/fit_alien_lm_brms2",
+                          file_refit = "on_change")
+fit_alien_lm_brms_null2 <- brm(size ~ 1, data = Alien,
+                               prior = priors_brms2[2:3, ], seed = 123,
+                               file = "cache_brms/fit_alien_lm_brms_null2",
+                               file_refit = "on_change")
+BF_lm2 <- bayes_factor(fit_alien_lm_brms2, fit_alien_lm_brms_null2)
+BF_lm2$bf
+```
+
+```{r}
+#| echo: false
+#| eval: true
+BF_lm2$bf
+```
+
+. . .
+
+\bluebold{Interpretation:} the observed data are `{r} round(BF_lm2$bf, 1)` times more likely under our first LM than under the null model, which represents a strong support in favour of our model
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-height: 2cm
+knitr::include_graphics("./figures/Lee-and-Wagenmakers-classification-scheme-for-interpreting-Bayes-factors.png", dpi = NA)
+```
+
+## Tests --- example of comparison of 2 nested models
+
+\textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
+
+Posterior inclusion probability comparing 2 LM using {nimble}
+```{r}
+#| label: nimble PIP
+#| echo: true
+#| size: scriptsize
+code_pip <- nimbleCode({
+  incl ~ dbin(p_incl, 1) # we add a switch
+  for (i in seq_len(N)) {
+    size[i] ~ dnorm(
+  mean = intercept + incl*slope*humans_eaten[i], sd = sigma)
+  }
+  # priors
+  intercept ~ dnorm(mean = 50, sd = 5)
+  slope ~ dnorm(mean = 0, sd = 5)
+  sigma ~ dunif(min = 0, max = 5)
+})
+
+constants_pip <- list(p_incl = 0.5, N = nrow(Alien), humans_eaten = Alien$humans_eaten)
+
+inits_pip <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
+```
+
+\scriptsize
+
+**NB:**
+
+- `p_incl` is fixed at 0.5, which reflects a neutral prior belief
+- I centred `humans_eaten` to make the BF comparable to {brms} which internally use priors on parameters applied to centred variables
+- if several predictors were present, `incl` would have to be multiplied to all corresponding regression coefficients
+
+
+## Tests --- example of comparison of 2 nested models
+
+\textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
+
+Posterior inclusion probability comparing 2 LM using {nimble}
+```{r}
+#| label: nimble PIP next
+#| echo: true
+#| cache: true
+#| size: scriptsize
+fit_alien_lm_nimb_pip <- nimbleMCMC(code = code_pip,
+                                    constants = constants_pip,
+                                    data = list(size = Alien$size),
+                                    inits = inits_pip,
+                                    nchains = 4, setSeed = 1:4,
+                                    nburnin = 4000,
+                                    progressBar = FALSE)
+
+proba_incl <- mean(sapply(fit_alien_lm_nimb_pip, \(chain) mean(chain[, "incl"]))) # avg across chains
+proba_incl
+```
+
+. . . 
+
+\bluebold{Interpretation}
+
+\scriptsize
+
+1. there is an `{r} round(100*proba_incl, 1)`% posterior probability that the effect of the number of humans eaten on the size of aliens is present, versus a `{r} round(100*(1- proba_incl), 1)`% posterior probability that the data are equally consistent with the null model
+2. since `p_incl` is fixed at 0.5, `proba_incl` directly determines BF which reduces to $\dfrac{\text{proba\_incl}}{(1-\text{proba\_incl})}=$ `{r} round(proba_incl/(1-proba_incl), 1)` (note, this is a bit different from {brms} BF because the latter internally centres the regressors which are multiplied to priors draws)
+
+
+## Tests --- example of test on parameters
+
+\textcolor{red}{Are parameter estimates likely to be null?}
+
+t-tests testing H0 that the parameter estimates are 0
+```{r}
+#| echo: true
+summary(fit_alien_lm)$coefficients # or just summary(fit_alien_lm)
+```
+
+\bluebold{Interpretation:} both parameters are significantly different from 0
+
+**NB:**
+
+- this is directly provided by the summary tables we have seen all along
+
+
+## Tests --- example of test on parameters
+
+\textcolor{red}{Are parameter estimates likely to be null?}
+
+using credibility intervals for testing H0 that the parameter estimates are 0
+```{r}
+#| echo: true
+fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
+```
+
+\bluebold{Interpretation:} 0 is not among the values considered plausible at the 95% credible level 
+
+**NB:**
+
+- this is again provided by the summary tables we have seen earlier
+
+## Tests --- conclusion
+
+- testing parameters directly is much easier but it increases the risk of false positives (this is why I recommended earlier the testing order going from overall to specific)
+- in Bayesian statistics, the Bayes factor is appealing since it potentially applies to all possible testing situations, however it is very dependent on priors and thus on internal scaling of variables by software, which makes it a measure difficult to compare across studies, casting doubt on the usual "scale" of strength of evidence it is associated with
+
 
 # Assumptions
 
