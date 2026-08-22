@@ -92,7 +92,7 @@ library(tidyverse)
 library(brms) # explicit call here since can be hidden by cache below
 
 ## set tibble sizes via pillar
-options(width = 90, pillar.width = 90,
+options(width = 90, pillar.width = 90, scipen = 2,
         pillar.print_min = 5, pillar.print_max = 5)
 
 ## set output text size
@@ -120,7 +120,7 @@ next_practice <- function(counter = NULL) {
   practice_counter
 }
 
-## create cache folder for bmrs
+## create cache folder for brms
 if (!dir.exists("cache_brms")) dir.create("cache_brms")
 ```
 
@@ -130,7 +130,7 @@ if (!dir.exists("cache_brms")) dir.create("cache_brms")
 
 \bluebold{Statistical model}
 
-an approximate description of the \blueit{data generating process}, i.e. an approximation of how the world generate data
+an approximate description of the \blueit{data generating process}, i.e. an approximation of how the world generates data
 
 . . .
 
@@ -146,7 +146,7 @@ In particular, it helps
 - planning sample size before data collection
 - testing the coverage of confidence intervals (i.e. do they work as intended)
 - testing the robustness of the statistical test (i.e. check the rate of false positives)
-- perform prior and posterior predictive checks during Bayesian analyses
+- performing prior and posterior predictive checks during Bayesian analyses
 
 
 
@@ -163,7 +163,7 @@ a data generating process produced by a \blueit{linear function}: the data are g
 **NB:**
 
 - linear models encompass the classic linear regression which forms a straight line, but also many other models (e.g. polynomials are linear and yet do not form straight lines)
-- much of difficulties people encounter when dealing with more complex models (e.g. Generalised Linear Models, Linear Mixed-effects Models, Hierarchical Models) is often caused by not having sufficiently understood the LM
+- much of the difficulty people encounter when dealing with more complex models (e.g. Generalised Linear Models, Linear Mixed-effects Models, Hierarchical Models) is often caused by not having sufficiently understood the LM
 
 
 ## LM --- notations of a LM: simple notation
@@ -191,7 +191,7 @@ $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta
 
 - this is the notation that biologists should use in their paper/thesis to describe their model
 - the regressors are sometimes directly given by the columns from your dataset (i.e. the predictors), but not always (more on that later)
-- when parameters are not know but estimated they should wear a hat (e.g. $\hat{\beta_0}$) and $\epsilon_i$ (also sometimes called $\varepsilon_i$) usually becomes $e_i$ or $r_i$
+- when parameters are not known but estimated they should wear a hat (e.g. $\hat{\beta_0}$) and $\epsilon_i$ (also sometimes called $\varepsilon_i$) usually becomes $e_i$ or $r_i$
 
 
 ## LM --- notations of a LM: usual R notation
@@ -245,7 +245,7 @@ $$
 
 
 ## LM --- data generating process: data simulation
-<!-- Emerald Lion is an anagram to linear model -->
+<!-- Emerald Lion is an anagram of linear model -->
 
 Let's enter \bluebold{God mode} $\rightarrow$ we pretend that \bluenorm{Emerald Lion} (a goddess) knows how her world generates data; she informed us that in her world aliens keep growing with the number of humans they eat as follows:
 
@@ -721,7 +721,7 @@ mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be prod
 #| fig-height: 6
 library(brms) # Bayesian regression models using stan
 fit_alien_lm_brms <- brm(size ~ humans_eaten, data = Alien, seed = 123,
-                         file = "cache_brms/fit_alien_lm_bmrs") # storing the compiled model 
+                         file = "cache_brms/fit_alien_lm_brms") # storing the compiled model 
                                                                 # makes it quick to rerun
                                                                 # but dangerous if something changes
 mcmc_plot(fit_alien_lm_brms, type = "trace") # many diagnostic plots can be produced
@@ -815,7 +815,7 @@ humans_eaten_possible <- min(Alien$humans_eaten):max(Alien$humans_eaten)
 
 expand_grid(prior, humans_eaten = humans_eaten_possible) |>
   mutate(size = intercept[sim] + slope[sim]*humans_eaten,
-         resp = size + sigma[sim]) -> prior_pred
+         resp = size + rnorm(n = length(sim), 0, sigma[sim])) -> prior_pred
 
 ggplot(prior_pred, aes(x = humans_eaten, y = size)) +
   geom_line(aes(group = sim), linewidth = 0.1) + 
@@ -985,7 +985,7 @@ posterior1 <- tibble(
                 sd = fit_alien_lm_nimb_d[, 1, "sigma", drop = TRUE]))
 
 expand_grid(posterior1, humans_eaten = Alien$humans_eaten) |> 
-  mutate(pred = intercept + slope * humans_eaten) -> pred1
+  mutate(pred = intercept + slope * humans_eaten + error) -> pred1
 
 ggplot() +
   geom_density(aes(x = pred, after_stat(density),
@@ -1022,7 +1022,7 @@ ggplot() +
 
 \begin{scriptsize}
 \begin{itemize}
-\item this looks OK: the posterior predictions are much more concentrated than the prior ones, and close to the observations although the number of observations is a little to low to judge properly
+\item this looks OK: the posterior predictions are much more concentrated than the prior ones, and close to the observations
 \end{itemize}
 \end{scriptsize}
 :::
@@ -1131,8 +1131,8 @@ summarise_draws(fit_alien_lm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.02
 ::: {.column width="50%"}
 \begin{footnotesize}
 \begin{itemize}
-\item<2-> we never obtained 50 (intercept), 1.5 (slope), or 2 (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
-\item<3-> despite the small sample size (`{r} paste0("N=", N)`) the estimates are in agreement and all intervals include ground truth values
+\item<2-> despite the small sample size (`{r} paste0("N=", nrow(Alien))`) the estimates are in agreement and all intervals include ground truth values
+\item<3-> we never obtained 50 (intercept), 1.5 (slope), or 2 (sigma) because a sample is unlikely to reflect perfectly the population-level values; only N=$\infty$ or talking to the goddess could get you those
 \end{itemize}
 \pause
 \vspace{1em}
@@ -1177,7 +1177,7 @@ Interpreting the meaning of \blueit{regression coefficients} (= \blueit{paramete
 
 ## Interpreting coefficients --- data preparation: clean up
 
-Let's create a single clean dataset with all the variables we will need for a models
+Let's create a single clean dataset with all the variables we will need for all models
 
 ```{r}
 #| echo: true
@@ -1515,7 +1515,7 @@ coef(fit_flipper_int)
    - the average body mass of a female penguin with a flipper length of 200 mm
    - the average body mass of a male penguin with a flipper length of 200 mm
 3. interpret the meaning of all 4 coefficients
-4. does body mass increases with flipper length in males?
+4. does body mass increase with flipper length in males?
 
 ## Solution
 
@@ -1967,7 +1967,7 @@ P(\text{departure}_i) =  \frac{1}{1 + \exp^{-(-2.197 + 1.5 \times \text{humans\_
 \end{equation*}
 ```
 
-We can thus generate data on 35 aliens following E.L. recipe:
+We can thus generate data on 35 aliens following E.L.'s recipe:
 
 ```{r}
 #| label: GLM data generation
@@ -2030,7 +2030,7 @@ summary(fit_alien_glm)
 
 ## GLM --- model fitting: Bayesian approach with {brms}
 
-Fitting GLM with {brm} is slightly different since it uses a specific family for binary data\footnote{the Bernoulli distribution is a special case of the binomial data when there is only 1 trial}
+Fitting GLM with {brms} is slightly different since it uses a specific family for binary data\footnote{the Bernoulli distribution is a special case of the binomial distribution when there is only 1 trial}
 
 ```{r}
 #| label: alien glm brms fake
@@ -2060,7 +2060,7 @@ fit_alien_glm_brms <- brm(departed ~ humans_eaten, data = Alien2,
                           family = bernoulli(link = "logit"),
                           seed = 123,
                           iter = 10000,
-                          file = "cache_brms/fit_alien_glm_bmrs") # to store the compiled model (quick to rerun)
+                          file = "cache_brms/fit_alien_glm_brms") # to store the compiled model (quick to rerun)
 summary(fit_alien_glm_brms)
 ```
 
@@ -2091,7 +2091,7 @@ inits_glm <- list(intercept = 0, slope = 0)
 ## GLM --- model fitting: Bayesian approach (prior predictive checking)
 
 
-... but again we need to make sure the priors are sensible and here it is even more difficult to foresee
+... but again we need to make sure the priors are sensible(here it would be even more difficult to foresee)
 
 ::: columns
 ::: {.column width="60%"}
@@ -2106,8 +2106,8 @@ prior_slope2 <- rnorm(n = n_sims2, mean = 0, sd = 2)
 
 expand_grid(sim = seq_len(n_sims2),
             humans_eaten = seq(0, 6, by = 0.1)) |> 
-  mutate(prob = 1/(1 + plogis(prior_intercept2[sim] + 
-      prior_slope2[sim] * humans_eaten))) -> prior_pred2
+  mutate(prob = plogis(prior_intercept2[sim] + 
+      prior_slope2[sim] * humans_eaten)) -> prior_pred2
 
 ggplot(prior_pred2) +
   geom_histogram(aes(x = prob))
@@ -2154,15 +2154,72 @@ fit_alien_glm_nimb <- nimbleMCMC(code = code_glm,
                                  data = list(departed = Alien2$departed),
                                  inits = inits_glm, nchains = 4, setSeed = 1:4,
                                  nburnin = 4000)
-summary(as_draws(fit_alien_glm_nimb))
+fit_alien_glm_nimb_d <- as_draws(fit_alien_glm_nimb)
+summary(fit_alien_glm_nimb_d)
 ```
 
 ```{r}
 #| echo: true
-summary(as_draws(fit_alien_glm_nimb))
+fit_alien_glm_nimb_d <- as_draws(fit_alien_glm_nimb)
+summary(fit_alien_glm_nimb_d)
 ```
 
-## GLM --- model fitting: interlude on logit
+
+## GLM --- model fitting results: estimates compared
+
+Let's compare the results
+
+::: columns
+::: {.column width="50%"}
+`glm()`
+```{r}
+#| echo: false
+#| label: alien glm results
+#| size: scriptsize
+rbind(cbind(summary(fit_alien_glm)$coefficients,
+            confint(fit_alien_glm))[, -c(3:4)]) |> 
+  as.data.frame() |> 
+  rownames_to_column(var = "Parameter") |> 
+  as_tibble()
+``` 
+
+\vspace{1em}
+
+`brms::brm()`
+```{r}
+#| echo: false
+#| label: alien glm brms results
+#| size: scriptsize
+rbind(fixef(fit_alien_glm_brms)) |> 
+  as.data.frame() |> 
+  rownames_to_column(var = "Parameter") |> 
+  as_tibble()
+```
+
+\vspace{1em}
+
+`nimble::nimbleMCMC()`
+```{r}
+#| echo: false
+#| label: alien glm nimble results
+#| size: scriptsize
+summarise_draws(fit_alien_glm_nimb_d, "mean", "sd", ~ quantile(.x, probs = c(0.025, 0.975)))
+```
+:::
+
+. . .
+
+::: {.column width="50%"}
+\begin{itemize}
+\item<2-> the estimates are in agreement and all intervals include ground truth values
+\vspace{1em}
+\item<3-> we never obtained -2.197 (intercept) or 1.5 (slope) because, once again, a sample is unlikely to reflect perfectly the population-level values
+\end{itemize}
+:::
+:::
+
+
+## GLM --- model fitting: interlude on link functions
 
 \textcolor{red}{What is the so-called \blueit{logit} (or logistic unit, or log-odds)?}
 
@@ -2175,15 +2232,208 @@ summary(as_draws(fit_alien_glm_nimb))
 fit_alien_glm <- glm(departed ~ humans_eaten, data = Alien2, family = binomial(link = "logit"))
 ```
 
-- it is the inverse of the standard logistic distribution, and is defined as: $\text{logit}(p) = \text{log}\frac{p}{1-p}$
+- it is the inverse of the standard logistic function, and is defined as: $\text{logit}(p) = \text{log}\frac{p}{1-p}$
 
 proof:
 
 $\frac{1}{1+e^{-\text{logit}(p)}} = \frac{1}{1+e^{-\text{log}\frac{p}{1-p}}}=\frac{1}{1+\frac{1}{e^{\text{log}\frac{p}{1-p}}}}=\frac{1}{1+\frac{1}{\frac{p}{1-p}}}=\frac{1}{1+\frac{1-p}{p}}=\frac{1}{\frac{p+1-p}{p}}=\frac{1}{\frac{1}{p}}=p$
 
-- it is the scale in which the linear predictor of the current GLM is expressed since the logit is allowed to vary between $-\infty$ and $\infty$ while $p$ is constrained to vary between -1 and 1
+. . .
+
+- it is the scale in which the linear predictor of the current GLM is expressed since the logit is allowed to vary between $-\infty$ and $\infty$ while $p$ is constrained to vary between 0 and 1
+
+- other link functions are possible for the binomial family (e.g. cauchit, probit), they are S-shaped too, but not identical
 
 
+## GLM --- model fitting: interlude on link functions
+
+Some link functions used for the binomial family
+
+```{r}
+#| fig-align: center
+#| out-height: 3cm
+ggplot() +
+  geom_function(fun = plogis, aes(colour = "logit"), xlim = c(-10, 10)) +
+  geom_function(fun = pnorm, aes(colour = "probit"), xlim = c(-10, 10)) +
+  geom_function(fun = pcauchy, aes(colour = "cauchit"), xlim = c(-10, 10)) +
+  labs(colour = "link")
+```
+
+. . .
+
+**NB:**
+
+- the logit is a so-called \blueit{canonical link function}, the one with the best mathematical properties among alternatives, which is why it is the default of `binomial()`
+- in Bayesian statistics there are fewer benefits to stick to canonical links compared to frequentist statistics, but the MCMC sampling can be difficult for some non-canonical links and how to interpret parameters can be even less straightforward than what we are about to see in a few slides $\rightarrow$ if you begin, stick to logit for binomial (& log for Poisson GLM)
+
+
+## GLM --- Poisson GLM, data
+
+Another very useful GLM is the Poisson GLM, which is used to fit count data
+
+This time, we will directly use real data, the ones about the birds in Switzerland which you should already have downloaded:
+```{r}
+#| echo: true
+territories <- read_csv("data_MHB/data-territories.csv")
+species_count <- read_csv("data_MHB/header-species-count.csv")
+
+territories |> 
+    summarise(territories_sum = sum(territories_total),
+              .by = c(nameeg, namelt)) |> 
+    slice_max(territories_sum, n = 6) |> 
+    pull(namelt) -> top6sp
+
+territories |> 
+    filter(namelt %in% top6sp & year == 2000) |> 
+    summarise(territories_top6 = sum(territories_total),
+              .by = c(nameeg, samplearea_id)) |> 
+    left_join(species_count |> filter(year == 2000)) -> territories_top6_2000
+```
+
+## GLM --- Poisson GLM, data
+
+Another very useful GLM is the Poisson GLM, which is used to fit count data
+
+This time, we will directly use real data, the ones about the birds in Switzerland which you should already have downloaded:
+
+```{r}
+#| echo: true
+territories_top6_2000
+```
+
+## GLM --- Poisson GLM, fit
+
+Let's model the number of recorded number of territories occupied at a sample area (in 2000) according to the median elevation and the number of visits performed:
+
+```{r}
+#| echo: true
+#| size: scriptsize
+fit_bird_glm <- glm(territories_top6 ~ median_elevation + n_visits,
+                    data = territories_top6_2000,
+                    family = poisson(link = "log"))
+summary(fit_bird_glm)
+```
+
+## GLM --- predictions and interpretation
+
+At the scale of the linear predictor (here logit and then log), the interpretation is exactly as in LM
+
+```{r}
+#| echo: true
+coef(fit_alien_glm)
+```
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| out-height: 4cm 
+#| fig-align: center
+#| label: fit alien glm pred plot
+estimate_link(fit_alien_glm) |> 
+  plot(numeric_as_discrete = FALSE)
+```
+:::
+::: {.column width="40%"}
+\bluebold{Interpretation}
+
+- on average, \blueit{the logit of departure} is `{r} signif( coef(fit_alien_glm)[["(Intercept)"]], 3)` when no human is eaten
+- on average, every additional human eaten increases \blueit{the logit of departure} by `{r} signif(coef(fit_alien_glm)[["humans_eaten"]], 3)`
+:::
+:::
+
+## GLM --- predictions and interpretation
+
+At the scale of the linear predictor (here logit and then log), the interpretation is exactly as in LM
+
+```{r}
+#| echo: true
+coef(fit_bird_glm)
+```
+
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| out-height: 4cm 
+#| fig-align: center
+#| label: fit bird glm pred plot
+estimate_link(fit_bird_glm) |>
+  plot()
+```
+:::
+::: {.column width="40%"}
+\bluebold{Interpretation}
+
+- on average, \blueit{the log number of territories} is `{r} coef(fit_bird_glm)[["(Intercept)"]]` when the median elevation is 0m and the number of visit is 0
+- on average, every additional meter in median elevation increases \blueit{the log number of territories} by `{r} coef(fit_bird_glm)[["median_elevation"]]`
+- on average, every additional visit increases \blueit{the log number of territories} by `{r} coef(fit_bird_glm)[["n_visits"]]`
+:::
+:::
+
+
+## GLM --- predictions and interpretation
+
+At the scale of the response variable, predictions and interpretation differ
+
+```{r}
+#| echo: true
+coef(fit_alien_glm)
+```
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| out-height: 4cm 
+#| fig-align: center
+#| label: fit alien glm pred plot resp
+estimate_relation(fit_alien_glm,
+  by = list(humans_eaten = seq(0, 6, length = 100))) |> 
+  plot(show_data = TRUE, numeric_as_discrete = FALSE)
+```
+:::
+::: {.column width="40%"}
+\bluebold{Interpretation}
+
+- on average, every additional human eaten increases \blueit{the odds of departure} $e^{\text{slope}}=$ `{r} exp(coef(fit_alien_glm)[["humans_eaten"]])` \blueit{fold}
+:::
+:::
+
+## GLM --- predictions and interpretation
+
+At the scale of the response variable, predictions and interpretation differ
+
+
+```{r}
+#| echo: true
+coef(fit_bird_glm)
+```
+::: columns
+::: {.column width="60%"}
+```{r}
+#| echo: true
+#| out-height: 4cm 
+#| fig-align: center
+#| label: fit bird glm pred plot resp
+estimate_relation(fit_bird_glm) |>
+  plot(show_data = FALSE) # no data points for clarity
+```
+:::
+::: {.column width="40%"}
+\bluebold{Interpretation}
+
+- on average, every additional meter in median elevation increases the number of territories by $100 \times (e^{\text{slope}}-1)=$ `{r} 100*(exp(coef(fit_bird_glm)[["median_elevation"]])-1)`\blueit{\%}, i.e. decreases it by $100\times (1 - e^{\text{slope}})=$ `{r} 100*(1-exp(coef(fit_bird_glm)[["median_elevation"]]))`\blueit{\%}
+
+- on average, every additional 1000 meter in median elevation increases the number of territories by $100 \times (e^{ \text{slope}\times1000}-1)=$ `{r} 100*(exp(coef(fit_bird_glm)[["median_elevation"]]*1000)-1)`\blueit{\%}, i.e. decreases it by $100\times (1 - e^{\text{slope}\times1000})=$ `{r} 100*(1-exp(coef(fit_bird_glm)[["median_elevation"]]*1000))`\blueit{\%}
+:::
+:::
+
+# Tests
+
+# Assumptions
+
+# Model construction
+
+# A simple habitat occupancy model
 
 # Questions? {.unnumbered}
 
