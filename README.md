@@ -10,7 +10,7 @@ It contains the material used for a course in statistical modelling.
 The course is divided into five parts. To access the presentations, navigate to the corresponding folder and download the **PDFs**:
 
 *   `part1_introduction` $\rightarrow$ [introduction.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part1_introduction/introduction.pdf)
-*   `part2_R` $\rightarrow$ [Rintro.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part2_R/Rintro.pdf) + [Rintro_solutions](https://github.com/courtiol/intro_modelling_workshop/blob/main/part2_R/Rintro_solutions.pdf)
+*   `part2_R` $\rightarrow$ [Rintro.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part2_R/Rintro.pdf) + [Rintro_solutions.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part2_R/Rintro_solutions.pdf)
 *   `part3_quarto` $\rightarrow$ [quarto_intro.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part3_quarto/quarto_intro.pdf)
 *   `part4_fundamentals` $\rightarrow$ [fundamentals.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part4_fundamentals/fundamentals.pdf)
 *   `part5_modelling` $\rightarrow$ [modelling_intro.pdf](https://github.com/courtiol/intro_modelling_workshop/blob/main/part5_modelling/modelling_intro.pdf)
