@@ -110,7 +110,8 @@ knitr::include_graphics(article_figs[order(years, decreasing = TRUE)])
 
 ## Workshop rules
 
-- slides are provided, so invest your time in thinking (not just writing)
+- slides are provided, so invest your time in thinking (not just writing)\
+$\rightarrow$ [github.com/courtiol/intro_modelling_workshop](https://github.com/courtiol/intro_modelling_workshop)
 - try to learn actively (ask questions)
 - treat each other as equal
 - there is no dumb question
