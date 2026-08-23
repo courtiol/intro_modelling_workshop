@@ -2477,7 +2477,7 @@ $^{**}$ Wald tests perform poorly for small samples or parameters near a boundar
 
 \textcolor{red}{Is our model better than intercept-only model (i.e. null model)?}
 
-F-test testing H0 that the variance explained by the 2 LMs is the same
+F-test testing $H_0$: the variance explained by the 2 LMs is the same
 ```{r}
 #| echo: true
 fit_alien_lm      <- lm(size ~ humans_eaten, data = Alien)
@@ -2578,7 +2578,7 @@ BF_lm2$bf
 
 . . .
 
-\bluebold{Interpretation:} the observed data are `{r} round(BF_lm2$bf, 1)` times more likely under our first LM than under the null model, which represents a strong support in favour of our model
+\bluebold{Interpretation:} the observed data are `{r} round(BF_lm2$bf, 1)` times more likely under our first LM than under the null model, which represents strong support in favour of our model
 
 ```{r}
 #| echo: false
@@ -2658,7 +2658,7 @@ proba_incl
 
 \textcolor{red}{Are parameter estimates likely to be null?}
 
-t-tests testing H0 that the parameter estimates are 0
+t-tests testing $H_0$ that the parameter estimates are 0
 ```{r}
 #| echo: true
 summary(fit_alien_lm)$coefficients # or just summary(fit_alien_lm)
@@ -2668,14 +2668,14 @@ summary(fit_alien_lm)$coefficients # or just summary(fit_alien_lm)
 
 **NB:**
 
-- this is directly provided by the summary tables we have seen all along
+- this is directly provided by the summary tables seen earlier
 
 
 ## Tests --- example of test on parameters
 
 \textcolor{red}{Are parameter estimates likely to be null?}
 
-using credibility intervals for testing H0 that the parameter estimates are 0
+using credibility intervals for testing $H_0$ that the parameter estimates are 0
 ```{r}
 #| echo: true
 fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
@@ -2685,19 +2685,143 @@ fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
 
 **NB:**
 
-- this is again provided by the summary tables we have seen earlier
+- this is again provided by the summary tables seen earlier
+
 
 ## Tests --- conclusion
 
-- testing parameters directly is much easier but it increases the risk of false positives (this is why I recommended earlier the testing order going from overall to specific)
-- in Bayesian statistics, the Bayes factor is appealing since it potentially applies to all possible testing situations, however it is very dependent on priors and thus on internal scaling of variables by software, which makes it a measure difficult to compare across studies, casting doubt on the usual "scale" of strength of evidence it is associated with
+- testing parameters directly is much easier but it increases the risk of false positives when null hypothesis significance testing (NHST) is applied (this is why I recommended earlier the testing order going from overall to specific)
 
+\vspace{1em}
 
-# Assumptions
+- in Bayesian statistics, the ordering isn't needed for formal error-rate control (unlike NHST), but the same order remains good scientific practice: conclusions about a coefficient are only meaningful if the broader model/variable is itself supported by the data
+
+\vspace{1em}
+
+- in Bayesian statistics, the Bayes factor is appealing as it can potentially be applied to all testing situations, however it is very dependent on priors and thus on internal scaling of variables by software, which makes it a measure difficult to compare across studies, casting doubt on the usual "scale" of strength of evidence it is associated with
+
+\vspace{1em}
+
+- in Bayesian statistics, under any continuous prior, a genuinely continuous slope is never exactly zero $\rightarrow$ $H_0$ has no special status but is considered as just one hypothesis among many
+
 
 # Model construction
 
-# A simple habitat occupancy model
+# Assumptions
+
+## Assumptions --- bla
+<!-- mention zero inflated model as transition towards habitat occupancy ones -->
+
+# Habitat occupancy model
+
+## Habitat occupancy model --- recall the situation
+
+```{=latex}
+\begin{center}
+\resizebox{0.5\linewidth}{!}{%
+\begin{forest}
+for tree={
+  align=center,
+  parent anchor=south,
+  child anchor=north,
+  edge={-latex, thick},
+  l sep=10mm,
+  s sep=2mm,
+  font=\small,
+}
+[{population}
+  [{presence}, edge label={node[midway, anchor=east, xshift=-10pt, font=\small]{$P(\mathrm{occupancy}) = \psi$}}
+    [{detected\\(true positive)}, draw, rounded corners, fill=gray!10,
+      edge label={node[midway, anchor=east, yshift=-5pt, xshift=-10pt, font=\scriptsize, align=center]{$P(\mathrm{detection}) = p_{11}$}}]
+    [{not detected\\ (false negative)}, draw, rounded corners, fill=gray!10,
+      edge label={node[midway, anchor=west, yshift=-5pt, xshift=10pt,  font=\scriptsize, align=center]{$1 - p_{11}$}}]
+  ]
+  [{absence}, edge label={node[midway, anchor=west, xshift=10pt, font=\small]{$1 - \psi$}}
+    [{not detected\\ (true negative)}, draw, rounded corners, fill=gray!10,
+      edge label={node[midway, anchor=west, font=\scriptsize]{$1$}}]
+  ]
+]
+\end{forest}
+}
+\end{center}
+```
+
+We thus have a state space model (SSM):
+
+- a non-observable layer with a state variable describing whether the habitat is occupied or not
+- an observable outcome describing whether a particular species has been observed or not
+- each of these levels can be modelled by a logistic GLM
+- the 2 GLMs are not independent, it is a hierarchical model
+
+## Habitat occupancy model --- fitting a no covariate model
+
+We first simulate data and define the model
+```{r}
+#| label: occu model simple
+#| echo: true
+#| size: scriptsize
+n_sites <- 100
+n_visits <- 50
+prob_occu <- 0.3      # simulated truth
+cond_prob_obs <- 0.1  # simulated truth
+
+occu_truth <- rbinom(n = n_sites, size = 1, prob = prob_occu)
+
+obs_mat <- matrix(NA, nrow = n_sites, ncol = n_visits)
+
+for (site in seq_len(n_sites)) {
+  obs_mat[site, ] <- occu_truth[site] * rbinom(n_visits, size = 1, prob = cond_prob_obs)
+}
+
+code_occu <- nimbleCode({
+  for (site in 1:n_site) {
+    z[site] ~ dbern(prob = psi) # occupancy status
+    p[site] <- z[site] * p_cond  # detection prob
+    for (visit in 1:n_visits) {
+      y[site, visit] ~ dbern(p[site]) # observation outcome
+    }
+  }
+  psi ~ dunif(0, 1)
+  p_cond ~ dunif(0, 1)
+})
+```
+
+## Habitat occupancy model --- fitting a no covariate model
+
+We can now fit the model
+```{r}
+#| label: fit occu model simple
+#| echo: true
+#| cache: true
+#| size: scriptsize
+constants_occu <- list(n_site = n_sites, n_visits = n_visits)
+
+z_init <- as.numeric(rowSums(obs_mat) > 0) # initialise z: any detection -> known occupied
+inits_occu <- list(p_cond = 0.5, psi = 0.1, z = z_init)
+
+fit_occu <- nimbleMCMC(code = code_occu,
+                       constants = constants_occu,
+                       data = list(y = obs_mat),
+                       inits = inits_occu,
+                       nchains = 4, setSeed = 1:4,
+                       niter = 10000, nburnin = 4000,
+                       progressBar = FALSE)
+
+summary(as_draws(fit_occu))
+```
+
+## Habitat occupancy model --- fitting a model with covariates
+
+## Habitat occupancy model --- relaxing some key assumptions
+
+# Conclusions
+
+## Conclusions
+
+- modelling can be tricky, especially when relying on MCMC
+- simulating data is critical to make sure you do estimate what you think
+- {nimble} is very flexible and can do much more than I showed you
+
 
 # Questions? {.unnumbered}
 
