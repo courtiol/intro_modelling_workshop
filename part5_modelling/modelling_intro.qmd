@@ -2707,10 +2707,18 @@ fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
 
 # Model construction
 
+# Model construction --- TODO
+
+- TODO
+
 # Assumptions
 
-## Assumptions --- bla
+## Assumptions --- TODO
+
 <!-- mention zero inflated model as transition towards habitat occupancy ones -->
+- TODO
+
+
 
 # Habitat occupancy model
 
@@ -2762,8 +2770,9 @@ We first simulate data and define the model
 #| size: scriptsize
 n_sites <- 100
 n_visits <- 50
-prob_occu <- 0.3      # simulated truth
-cond_prob_obs <- 0.1  # simulated truth
+
+set.seed(123)
+prob_occu <- 0.3; cond_prob_obs <- 0.1  # simulated truth
 
 occu_truth <- rbinom(n = n_sites, size = 1, prob = prob_occu)
 
@@ -2781,8 +2790,7 @@ code_occu <- nimbleCode({
       y[site, visit] ~ dbern(p[site]) # observation outcome
     }
   }
-  psi ~ dunif(0, 1)
-  p_cond ~ dunif(0, 1)
+  psi ~ dunif(0, 1); p_cond ~ dunif(0, 1)
 })
 ```
 
@@ -2812,7 +2820,13 @@ summary(as_draws(fit_occu))
 
 ## Habitat occupancy model --- fitting a model with covariates
 
+- TODO
+
+
 ## Habitat occupancy model --- relaxing some key assumptions
+
+- TODO
+
 
 # Conclusions
 
@@ -2821,6 +2835,9 @@ summary(as_draws(fit_occu))
 - modelling can be tricky, especially when relying on MCMC
 - simulating data is critical to make sure you do estimate what you think
 - {nimble} is very flexible and can do much more than I showed you
+- TODO
+- TODO
+- TODO
 
 
 # Questions? {.unnumbered}
