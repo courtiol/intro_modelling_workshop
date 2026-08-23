@@ -1005,8 +1005,7 @@ If the probability of catching a bird in one attempt is expected to be 5\%. Then
 
 ## Random variables and probability distributions --- the normal distribution
 
-\blueit{Probability density function} for a mean of 0 and a standard deviation of 1\
-(i.e. the standard normal distribution)
+\blueit{Probability density function} for a mean of 0 and a standard deviation of 1
 
 ```{r}
 #| echo: true
@@ -1059,7 +1058,7 @@ $z = \frac{x-\hat{\mu}}{\hat{\sigma}} \sim \mathcal{N}(0, 1)$
 
 . . .
 
-\bluebold{Back to general}
+Back to general: \bluebold{back transformation}
 
 if $Z \sim \mathcal{N}(0, 1)$, then given $\hat{\mu}$ and $\hat{\sigma}$, we can revert the z-scores transformation:
 
@@ -1721,10 +1720,10 @@ expand.grid(mu = seq(4, 4.5, length = 40),
 
 \bluebold{Test setup}
 
-1.  formulate a null hypothesis H0 for a population:\
-    $\rightarrow$ H0 is chosen in contrast to the experimental hypothesis (H1)
+1.  formulate a null hypothesis $H_0$ for a population:\
+    $\rightarrow$ $H_0$ is chosen in contrast to the experimental hypothesis ($H_1$)
 2.  select and measure a sample
-3.  question: is the sample compatible with H0?
+3.  question: is the sample compatible with $H_0$?
     - if "YES": by chance or reliably so?
     - if "NO": by chance or reliably so?
 
@@ -1749,7 +1748,7 @@ Ronald Fisher, \emph{The Design of Experiments}, Edinburgh: Oliver and Boyd, 193
 ## Tests and p-values --- "testing by eye" using \ci
 
 - comparison of one estimated parameter $\hat{\mu}$ (e.g. a mean) with a fixed value $\mu_0$\
-  (\bluenorm{H0: $\hat{\mu} = \mu_0$})
+  (\bluenorm{$H_0$: $\hat{\mu} = \mu_0$})
 
   - if $\mu_0$ is located outside the \ci, then $\hat{\mu}$ differs significantly from $\mu_0$\
     (given $\alpha$ = 5%; more on $\alpha$ later)
@@ -1759,7 +1758,7 @@ Ronald Fisher, \emph{The Design of Experiments}, Edinburgh: Oliver and Boyd, 193
 \vspace{0.5cm}
 
 - comparison of two estimated parameters $\hat{\mu}_1$ & $\hat{\mu}_2$ (e.g. two means)\
-  (\bluenorm{H0: $\hat{\mu}_1 = \hat{\mu}_2$})
+  (\bluenorm{$H_0$: $\hat{\mu}_1 = \hat{\mu}_2$})
 
   a.  if the two \ci\ do not overlap, then their means are significantly different
   b.  if the two \ci\ overlap, then, mostly, the difference between the means is not significant; however, it may happen that, for small overlaps, the difference is significant $\rightarrow$ the \ci\ for the difference between two means $\neq$ the difference between two individual\ci\
@@ -1775,11 +1774,11 @@ Ronald Fisher, \emph{The Design of Experiments}, Edinburgh: Oliver and Boyd, 193
 
 ## Principles of statistical tests --- test statistics
 
-1.  formulate a null hypothesis H0
+1.  formulate a null hypothesis $H_0$
 2.  define a \bluenorm{test statistic}, a function $f$ suited to quantify the null hypothesis (e.g. difference of height means)
 3.  select a sample
-4.  hypothesise a distribution of $f$ under H0; e.g. $f$ is assumed to be normally distributed (bell-shaped)
-5.  according to H0, mean($f$) = 0; SD($f$) is derived from the selected sample
+4.  hypothesise a distribution of $f$ under $H_0$; e.g. $f$ is assumed to be normally distributed (bell-shaped)
+5.  according to $H_0$, mean($f$) = 0; SD($f$) is derived from the selected sample
 6.  calculate the value $v$ = $f$(sample) for the sample
 
 . . .
@@ -1789,8 +1788,8 @@ Ronald Fisher, \emph{The Design of Experiments}, Edinburgh: Oliver and Boyd, 193
 \begin{callout}
 Where is $v$ located in the test distribution?
 \begin{itemize}
-\item $v$ near the edge: \bluebold{reject} H0
-\item $v$ near the middle: \bluebold{do not reject} H0
+\item $v$ near the edge: \bluebold{reject} $H_0$
+\item $v$ near the middle: \bluebold{do not reject} $H_0$
 \end{itemize}
 
 \end{callout}
@@ -1850,7 +1849,7 @@ tibble(x = seq(-4, 4, length.out = 1000),
 \begin{callout}
 \bluebold{p-value}
 
-area beyond $v$ (\textcolor{lightgray}{\rule{0.5em}{0.5em}}), i.e. the probability to (randomly) obtain this sample or one with a more extreme departure from H0, if H0 is \bluenorm{true}
+area beyond $v$ (\textcolor{lightgray}{\rule{0.5em}{0.5em}}), i.e. the probability to (randomly) obtain this sample or one with a more extreme departure from $H_0$, if $H_0$ is \bluenorm{true}
 
 \vspace{1em}
 
@@ -1875,11 +1874,11 @@ Result of a t-test: t = 2.7; p = 0.01
 
 Selection of suggested interpretations:
 
-1.  null hypothesis (H0: no difference) absolutely disproved
-2.  p-value reflects the probability of the H0
+1.  null hypothesis ($H_0$: no difference) absolutely disproved
+2.  p-value reflects the probability of the $H_0$
 3.  experimental hypothesis absolutely proved
 4.  p-value reflects the probability of the experimental hypothesis (different means)
-5.  p-value reflects the probability that the decision "reject H0" is wrong
+5.  p-value reflects the probability that the decision "reject $H_0$" is wrong
 6.  for potential replications of the experiment, 99% of the occasions should be significant
 
 \textcolor{red}{Which ones are correct?} \uncover<3->{\bluenorm{None!} $\rightarrow$ \blueit{frequentist statistics} cannot tell us the probability that a hypothesis is true; we will revisit this in the Bayesian section}
@@ -1887,7 +1886,7 @@ Selection of suggested interpretations:
 
 ## Principles of statistical tests --- significance
 
-A difference between H0 and H1 is more easily detectable ("significant")
+A difference between $H_0$ and $H_1$ is more easily detectable ("significant")
 
 - the larger the size (extent) of the biological effect is
 - the smaller the variance of the measurements
@@ -1902,7 +1901,7 @@ $\rightarrow$ \bluenorm{large differences} can be \bluenorm{insignificant} with 
 
 \vspace{0.5cm}
 
-To evaluate a difference between H0 and H1 one has to consider:
+To evaluate a difference between $H_0$ and $H_1$ one has to consider:
 
 - the \blueit{effect size}
 - the p-value together with sample size & variance\
@@ -1977,9 +1976,9 @@ $\rightarrow$ The evaluation of a test result requires:
 
 ## Principles of statistical tests --- one-sided vs two-sided tests
 
-\bluebold{Two-sided hypothesis} (e.g. body height): H0: males = females; H1: males $\neq$ females
+\bluebold{Two-sided hypothesis} (e.g. body height): $H_0$: males = females; $H_1$: males $\neq$ females
 
-- H0 is rejected only if the test statistic deviates in \bluebold{either direction}
+- $H_0$ is rejected only if the test statistic deviates in \bluebold{either direction}
 - "extreme" means that the test statistic in the 5%-region (i.e. the \blueit{rejection region})\
   $\rightarrow$ the "rejection region" is split into 2 $\times$ 2.5%-regions
 
@@ -2011,9 +2010,9 @@ tibble(x = seq(-4, 4, length.out = 1000),
 
 ## Principles of statistical tests --- one-sided vs two-sided tests
 
-\bluebold{One-sided hypothesis} (e.g. body height): H0: males = females; H1: males \> females
+\bluebold{One-sided hypothesis} (e.g. body height): $H_0$: males = females; $H_1$: males \> females
 
-- H0 is rejected only if the test statistic deviates in \bluebold{one direction}
+- $H_0$ is rejected only if the test statistic deviates in \bluebold{one direction}
 - "extreme" means that the test statistic in the 5%-region (i.e. the \blueit{rejection region})\
   $\rightarrow$ the "rejection region" is at one side of the test distribution
 
@@ -2104,7 +2103,7 @@ $\rightarrow$ \bluenorm{you cannot yet tell the direction of the true effect!}
 
 \textcolor{red}{\textbf{Question 1} if the null hypothesis is true in the population, what will be the probability to detect on a sample a significant departure from the null hypothesis (with $\alpha$ = 0.05)?}
 
-\centering \bluebold{P(reject H0 | H0) = ?}
+\centering \bluebold{P(reject $H_0$ | $H_0$) = ?}
 
 \raggedright
 \vspace{0.5cm}
@@ -2136,7 +2135,7 @@ Cue: think about the biologist trying to catch a bird...
 #| echo: false
 #| out-height: "4cm"
 #| fig-align: center
-#| fig-cap: \footnotesize (H0 is assumed true)
+#| fig-cap: \footnotesize ($H_0$ is assumed true)
 tibble(x = 1:50,
        Prob = 1 - dbinom(0, size = 1:50, prob = 0.05))  |> 
   ggplot() +
@@ -2255,10 +2254,10 @@ cross validation reduces the risk of false positive while multiple testing incre
 \begin{minipage}[c]{0.7\linewidth}
 \begin{callout}
 \begin{tabular}{p{2cm}p{3cm}p{3cm}}
-prob. to & \makecell[c]{accept H0} & \makecell[c]{reject H0}\\
+prob. to & \makecell[c]{accept $H_0$} & \makecell[c]{reject $H_0$}\\
 given that & & \\
-H0 true & \cellcolor{okgreen}\makecell[c]{true negative}& \cellcolor{bad}\makecell[c]{false positive}\\
-H0 false & \cellcolor{bad}\makecell[c]{false negative} & \cellcolor{okgreen}\makecell[c]{true positive}\\
+$H_0$ true & \cellcolor{okgreen}\makecell[c]{true negative}& \cellcolor{bad}\makecell[c]{false positive}\\
+$H_0$ false & \cellcolor{bad}\makecell[c]{false negative} & \cellcolor{okgreen}\makecell[c]{true positive}\\
 \end{tabular}
 \end{callout}
 \end{minipage}
@@ -2273,10 +2272,10 @@ Many metrics can be deduced from this table:
 | Metric                        | Definition                 |
 |:------------------------------|:---------------------------|
 | \blueit{accuracy}             | true / all                 |
-| \blueit{sensitivity}          | true positive / H0 false   |
-| \blueit{specificity}          | true negative / H0 true    |
-| \blueit{precision}            | true positive / reject H0  |
-| \blueit{false discovery rate} | false positive / reject H0 |
+| \blueit{sensitivity}          | true positive / $H_0$ false   |
+| \blueit{specificity}          | true negative / $H_0$ true    |
+| \blueit{precision}            | true positive / reject $H_0$  |
+| \blueit{false discovery rate} | false positive / reject $H_0$ |
 
 
 
@@ -2286,10 +2285,10 @@ Many metrics can be deduced from this table:
 \begin{minipage}[c]{0.7\linewidth}
 \begin{callout}
 \begin{tabular}{p{2cm}p{3cm}p{3cm}}
-prob. to & \makecell[c]{accept H0} & \makecell[c]{reject H0}\\
+prob. to & \makecell[c]{accept $H_0$} & \makecell[c]{reject $H_0$}\\
 given that & & \\
-H0 true & \cellcolor{okgreen}\makecell[c]{true negative}& \cellcolor{bad}\makecell[c]{false positive}\\
-H0 false & \cellcolor{bad}\makecell[c]{false negative} & \cellcolor{okgreen}\makecell[c]{true positive}\\
+$H_0$ true & \cellcolor{okgreen}\makecell[c]{true negative}& \cellcolor{bad}\makecell[c]{false positive}\\
+$H_0$ false & \cellcolor{bad}\makecell[c]{false negative} & \cellcolor{okgreen}\makecell[c]{true positive}\\
 \end{tabular}
 \end{callout}
 \end{minipage}
@@ -2299,10 +2298,10 @@ H0 false & \cellcolor{bad}\makecell[c]{false negative} & \cellcolor{okgreen}\mak
 
 \begin{center}
 \begin{tabular}{p{2cm}p{3cm}p{3cm}}
-prob. to & \makecell[c]{accept H0} & \makecell[c]{reject H0}\\
+prob. to & \makecell[c]{accept $H_0$} & \makecell[c]{reject $H_0$}\\
 given that & & \\
-H0 true & \cellcolor{okgreen}\makecell[c]{1 -- $\alpha$} & \cellcolor{bad}\makecell[c]{$\alpha$ = \blueit{type 1 error}}\ \\
-H0 false & \cellcolor{bad}\makecell[c]{$\beta$ = \blueit{type 2 error}} & \cellcolor{okgreen}\makecell[c]{1 -- $\beta$ = \blueit{power}} \\
+$H_0$ true & \cellcolor{okgreen}\makecell[c]{1 -- $\alpha$} & \cellcolor{bad}\makecell[c]{$\alpha$ = \blueit{type 1 error}}\ \\
+$H_0$ false & \cellcolor{bad}\makecell[c]{$\beta$ = \blueit{type 2 error}} & \cellcolor{okgreen}\makecell[c]{1 -- $\beta$ = \blueit{power}} \\
 \end{tabular}
 \end{center}
 
@@ -2392,8 +2391,8 @@ plot_power <- function(mu0 = 0, mu1 = 3, sd0 = 1, sd1 = 1, alpha = 0.05,
 }
 ```
 
-- we can compute the distribution of the test statistic under H0
-- let's also imagine that we know it under H1 (although it is not possible in practice)
+- we can compute the distribution of the test statistic under $H_0$
+- let's also imagine that we know it under $H_1$ (although it is not possible in practice)
 
 \vspace{0.5cm}
 
@@ -2409,8 +2408,8 @@ plot_power(mu0 = 0, mu1 = 3, sd0 = 1, sd1 = 1, alpha = 0.05)
 
 ## Statistical power --- trade-off between false positives & negatives
 
-- we can compute the distribution of the test statistic under H0
-- let's also imagine that we know it under H1 (although it is not possible in practice)
+- we can compute the distribution of the test statistic under $H_0$
+- let's also imagine that we know it under $H_1$ (although it is not possible in practice)
 
 \vspace{0.5cm}
 
@@ -2426,8 +2425,8 @@ plot_power(mu0 = 0, mu1 = 3, sd0 = 1, sd1 = 1, alpha = 0.1)
 
 ## Statistical power --- trade-off between false positives & negatives
 
-- we can compute the distribution of the test statistic under H0
-- let's also imagine that we know it under H1 (although it is not possible in practice)
+- we can compute the distribution of the test statistic under $H_0$
+- let's also imagine that we know it under $H_1$ (although it is not possible in practice)
 
 \vspace{0.5cm}
 
@@ -2443,8 +2442,8 @@ plot_power(mu0 = 0, mu1 = 3, sd0 = 1, sd1 = 1, alpha = 0.01)
 
 ## Statistical power --- trade-off between false positives & negatives
 
-- we can compute the distribution of the test statistic under H0
-- let's also imagine that we know it under H1 (although it is not possible in practice)
+- we can compute the distribution of the test statistic under $H_0$
+- let's also imagine that we know it under $H_1$ (although it is not possible in practice)
 
 \vspace{0.5cm}
 
@@ -2460,8 +2459,8 @@ plot_power(mu0 = 0, mu1 = 5, sd0 = 1, sd1 = 1, alpha = 0.05)
 
 ## Statistical power --- trade-off between false positives & negatives
 
-- we can compute the distribution of the test statistic under H0
-- let's also imagine that we know it under H1 (although it is not possible in practice)
+- we can compute the distribution of the test statistic under $H_0$
+- let's also imagine that we know it under $H_1$ (although it is not possible in practice)
 
 \vspace{0.5cm}
 
@@ -2535,8 +2534,8 @@ $\rightarrow$ for known $\alpha$ and $n$, the power can be determined by simulat
 
 \bluebold{Procedure}
 
-1.  calculate the test statistic presuming H1 for many randomly generated samples of size $n$
-2.  determine the percentage of test results under H1, which are significant
+1.  calculate the test statistic presuming $H_1$ for many randomly generated samples of size $n$
+2.  determine the percentage of test results under $H_1$, which are significant
 
 . . .
 
@@ -2575,7 +2574,7 @@ Imagine an \bluenorm{ideal situation}: we perform a clinical test to diagnose a 
 
 \textcolor{red}{\textbf{Question 1} what is the probability of being positive at the test when having the cancer?}
 
-\centering \bluebold{P(reject H0 | H1) = ?}
+\centering \bluebold{P(reject $H_0$ | $H_1$) = ?}
 
 \raggedright
 \vspace{0.5cm}
@@ -2585,13 +2584,13 @@ Imagine an \bluenorm{ideal situation}: we perform a clinical test to diagnose a 
 \textcolor{red}{\textbf{Question 2} what is the probability that a person with a positive test has the cancer?}
 
 \centering
-\bluebold{P(H1 | reject H0) = ?}
+\bluebold{P($H_1$ | reject $H_0$) = ?}
 
 \raggedright
 
 \vspace{0.5cm}
 
-**NB:** P(H1 \| reject H0) $\neq$ P(reject H0 \| H1)
+**NB:** P($H_1$ \| reject $H_0$) $\neq$ P(reject $H_0$ \| $H_1$)
 
 
 ## Interlude --- is power everything?
