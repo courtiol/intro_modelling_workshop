@@ -208,7 +208,7 @@ species_count
 
 ## Practice `r next_practice()`
 
-- import the file `header-species-count.csv` to obtain the second dataset
+- import the file `data-territories.csv` to obtain the second dataset
 
 ```{r}
 territories <- read_csv("data_MHB/data-territories.csv")
