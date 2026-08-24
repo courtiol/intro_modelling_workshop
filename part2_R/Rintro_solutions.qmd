@@ -159,23 +159,7 @@ species_count |>
 
 Use the functions we have seen to obtain:
 
-2. the number of observations for *Sturnus vulgaris* for each year
-
-```{r}
-#| echo: true
-#| message: true
-territories |> 
-    filter(namelt == "Sturnus vulgaris") |> 
-    summarise(territories_sum = sum(territories_total, na.rm = TRUE), # NAs present
-              .by = year)
-```
-
-
-## Practice `r next_practice(6)`c
-
-Use the functions we have seen to obtain:
-
-3. the 3 most recorded species for each year
+2. the 3 most recorded species for each year
 
 ```{r}
 #| echo: true
@@ -187,6 +171,37 @@ territories |>
     select(year, nameeg, namelt, territories_sum)
 ```
 
+
+## Practice `r next_practice(6)`c (1)
+
+Use the functions we have seen to obtain:
+
+3. the number of observations for *Sturnus vulgaris* for each year
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(namelt == "Sturnus vulgaris") |> 
+    summarise(territories_sum = sum(territories_total, na.rm = TRUE), # NAs present
+              .by = year)
+```
+
+## Practice `r next_practice(6)`c (2)
+
+Use the functions we have seen to obtain:
+
+3. the number of observations for *Sturnus vulgaris* for each year
+
+```{r}
+#| echo: true
+#| message: true
+territories |> 
+    filter(namelt == "Sturnus vulgaris") |> 
+    drop_na(territories_total) |> # alternative not to use na.rm below
+    summarise(territories_sum = sum(territories_total), # NAs present
+              .by = year)
+```
 
 ## Practice `r next_practice(7)`
 
@@ -293,7 +308,7 @@ ggplot(data_perimeter_sf) +
 #| echo: true
 #| message: true
 territories |> 
-    summarise(territories_sum = sum(territories_total),
+    summarise(territories_sum = sum(territories_total, na.rm = TRUE),
               .by = c(nameeg, namelt)) |> 
     slice_max(territories_sum, n = 6) |> 
     pull(namelt) -> top6sp
@@ -310,7 +325,7 @@ top6sp
 #| message: true
 territories |> 
     filter(namelt %in% top6sp) |> 
-    summarise(territories_sum = sum(territories_total),
+    summarise(territories_sum = sum(territories_total, na.rm = TRUE),
               .by = c(nameeg, namelt, year)) -> top6_across_time
 
 top6_across_time
