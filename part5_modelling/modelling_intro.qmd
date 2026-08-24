@@ -2707,7 +2707,7 @@ fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
 
 # Model construction
 
-# Model construction --- TODO
+## Model construction --- TODO
 
 - TODO
 
