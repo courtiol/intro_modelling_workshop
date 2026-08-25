@@ -203,7 +203,23 @@ format: html
 
 ## The header
 
-### A real example
+### Small be useful example for html
+
+```
+---
+title: "Some title"
+author: "Alexandre Courtiol"
+format:
+  html:
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+```
+
+## The header
+
+### A real example for pdf
 
 \begingroup\tiny
 ```

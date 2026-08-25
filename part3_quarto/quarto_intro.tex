@@ -517,8 +517,26 @@ format: html
 
 \begin{frame}[fragile]{The header}
 \protect\phantomsection\label{the-header-1}
-\begin{block}{A real example}
-\protect\phantomsection\label{a-real-example}
+\begin{block}{Small be useful example for html}
+\protect\phantomsection\label{small-be-useful-example-for-html}
+\begin{verbatim}
+---
+title: "Some title"
+author: "Alexandre Courtiol"
+format:
+  html:
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+\end{verbatim}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{The header}
+\protect\phantomsection\label{the-header-2}
+\begin{block}{A real example for pdf}
+\protect\phantomsection\label{a-real-example-for-pdf}
 \begingroup\tiny
 
 \begin{verbatim}
@@ -556,7 +574,7 @@ editor_options:
 \end{frame}
 
 \begin{frame}{The header}
-\protect\phantomsection\label{the-header-2}
+\protect\phantomsection\label{the-header-3}
 The header is a particularly fragile component
 
 \begin{itemize}
