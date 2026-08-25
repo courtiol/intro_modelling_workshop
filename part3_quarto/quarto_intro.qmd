@@ -302,7 +302,7 @@ species_count |> filter(year == 2025)
 
 1. read the page [quarto.org/docs/authoring/markdown-basics.html](https://quarto.org/docs/authoring/markdown-basics.html)\
    from the beginning until the end of the section entitled "Tables"
-2. read the entire page [quarto.org/docs/computations/r.html](https://quarto.org/docs/computations/r.html)
+2. read the entire page [quarto.org/docs/computations/r.html](https://quarto.org/docs/computations/r.html), but skip the sections "Positron", "VS Code", "Emacs"
 3. add an R chunk, an image, and some text into your quarto document and render it
 4. switch the format from `html` to `pdf` and render the document again^[this will require installing TinyTeX]
 5. explore the quarto guide: [quarto.org/docs/guide](https://quarto.org/docs/guide)
