@@ -2917,44 +2917,6 @@ Let's focus on the \bluebold{Metropolis algorithm} \bluenorm{(1953)}
 - it does not always perform well and modern software or packages use more modern (and more complex) MCMC samplers
 - several other MCMC algorithms directly relate to this sampler (e.g. Metropolis-Hastings)
 
-
-## Bayesian statistics --- Metropolis algorithm (principles)
-
-Algorithmic steps:
-
-\begin{small}
-\begin{enumerate}
-\tightlist
-\item<1-> define a prior distribution
-\item<2-> initialise a \blueit{chain} (a vector) with a starting parameter value $\theta$
-\item<3-> propose a new parameter value $\theta'$ by adding a small random jump to the current $\theta$
-\item<4-> accept $\theta'$ if it increases the posterior density, otherwise accept it with a probability defined by the ratio of the posterior densities (i.e. $\dfrac{\mathrm{posterior}(\theta')}{\mathrm{posterior}(\theta)}$)
-\item<5-> if $\theta'$ is accepted, add it to the chain, otherwise add $\theta$ again
-\item<6-> repeat steps 3--5 until the chain reaches the target length
-\item<7-> drop the beginning of the chain (i.e. the \blueit{burn-in}) to remove the influence of starting values
-\item<8-> the remaining values in the chain are \blueit{samples from the posterior distribution}
-\end{enumerate}
-\end{small}
-
-
-## Bayesian statistics --- Metropolis algorithm (principles)
-
-\bluebold{Key feature of the algorithm}
-\begin{callout}
-\begin{itemize}
-\item \bluenorm{it does not require maximising the likelihood function}; it only requires computing numerically the likelihood (or an approximation of it) at specific parameter values, which \bluenorm{allows to fit much more complex statistical models}
-\end{itemize}
-\end{callout}
-
-\vspace{1em}
-
-**NB:** 
-
-- the maximisation required in frequentist statistics to obtain point estimates is here replaced by a characterisation of the posterior distributions
-- it works because the algorithm need not computing the normalising constant of the posterior (the denominators of $\mathrm{posterior}(\theta')$ & $\mathrm{posterior}(\theta)$ cancel out in the ratio)
-- working around maximising the likelihood largely explains the success of Bayesian statistics in Ecology -- a field where observational data typically call for complex models (e.g. \blueit{state space models}, where some processes cannot be directly observed, as in \blueit{occupancy models})
-
-
 ## Bayesian statistics --- Metropolis algorithm (application)
 
 Let's use the Metropolis algorithm to estimate the mean and SD of petal length of\
@@ -3026,6 +2988,7 @@ ggplot() +
     labs(y = "Density", x = expression(theta))
 ```
 
+\small
 **NB:** priors can be multiplied (their log added) because we consider them independent, which simplifies things (no need from multivariate prior distribution) and is valid here
 :::
 :::
@@ -3251,6 +3214,45 @@ summary(posterior_clean)
 #| echo: true
 quantile2(posterior_clean, probs = c(0.025, 0.975)) # 95% credible interval
 ```
+
+
+## Bayesian statistics --- Metropolis algorithm (principles)
+
+Algorithmic steps:
+
+\begin{small}
+\begin{enumerate}
+\tightlist
+\item define a prior distribution
+\item initialise a \blueit{chain} (a vector) with a starting parameter value $\theta$
+\item propose a new parameter value $\theta'$ by adding a small random jump to the current $\theta$
+\item accept $\theta'$ if it increases the posterior density, otherwise accept it with a probability defined by the ratio of the posterior densities (i.e. $\dfrac{\mathrm{posterior}(\theta')}{\mathrm{posterior}(\theta)}$)
+\item if $\theta'$ is accepted, add it to the chain, otherwise add $\theta$ again
+\item repeat steps 3--5 until the chain reaches the target length
+\item drop the beginning of the chain (i.e. the \blueit{burn-in}) to remove the influence of starting values
+\item the remaining values in the chain are \blueit{samples from the posterior distribution}
+\end{enumerate}
+\end{small}
+
+
+## Bayesian statistics --- Metropolis algorithm (principles)
+
+\bluebold{Key feature of the algorithm}
+\begin{callout}
+\begin{itemize}
+\item \bluenorm{it does not require maximising the likelihood function}; it only requires computing numerically the likelihood (or an approximation of it) at specific parameter values, which \bluenorm{allows to fit much more complex statistical models}
+\end{itemize}
+\end{callout}
+
+\vspace{1em}
+
+**NB:** 
+
+- the maximisation required in frequentist statistics to obtain point estimates is here replaced by a characterisation of the posterior distributions
+- it works because the algorithm need not computing the normalising constant of the posterior (the denominators of $\mathrm{posterior}(\theta')$ & $\mathrm{posterior}(\theta)$ cancel out in the ratio)
+- working around maximising the likelihood largely explains the success of Bayesian statistics in Ecology -- a field where observational data typically call for complex models (e.g. \blueit{state space models}, where some processes cannot be directly observed, as in \blueit{occupancy models})
+
+
 
 ## Bayesian statistics --- software
 
