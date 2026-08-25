@@ -1,0 +1,64 @@
+---
+title: "Hello Switzerland"
+author: "Alex"
+format:
+  html:
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+crossref:
+  fig-title: Hình
+  fig-prefix: Hình 
+---
+
+```{css, echo=FALSE}
+figcaption {
+  text-align: center;
+}
+```
+
+# Section
+
+## Subsection
+
+We load the data, hidden the message that loading tidyverse triggers.
+
+<!-- this is a comment in html -->
+
+```{r}
+#| message: false
+library(tidyverse)
+library(sf)
+species_count <- read_csv("../part2_R/data_MHB/header-species-count.csv")
+species_count
+```
+
+If the data creating does not work, the path is probably wrong.
+
+
+We extract the sites from these data:
+```{r}
+species_count |> 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) |> 
+  distinct(samplearea_id, geometry) -> sites
+```
+
+Here are the sites:
+
+```{r}
+sites
+```
+
+For a simple plot of these data, check fig @fig-simple_plot
+
+```{r}
+#| label: fig-simple_plot
+#| out-width: 300px
+#| fig-align: center
+#| fig-cap: This is a plot
+ggplot(sites) +
+  geom_sf() +
+  theme_bw(base_size = 30)
+```
+
+The number of sites is `{r} nrow(sites)`.
