@@ -2279,14 +2279,14 @@ territories <- read_csv("data_MHB/data-territories.csv")
 species_count <- read_csv("data_MHB/header-species-count.csv")
 
 territories |> 
-    summarise(territories_sum = sum(territories_total),
+    summarise(territories_sum = sum(territories_total, na.rm = TRUE),
               .by = c(nameeg, namelt)) |> 
     slice_max(territories_sum, n = 6) |> 
     pull(namelt) -> top6sp
 
 territories |> 
     filter(namelt %in% top6sp & year == 2000) |> 
-    summarise(territories_top6 = sum(territories_total),
+    summarise(territories_top6 = sum(territories_total, na.rm = TRUE),
               .by = c(nameeg, samplearea_id)) |> 
     left_join(species_count |> filter(year == 2000)) -> territories_top6_2000
 ```
@@ -2820,12 +2820,124 @@ summary(as_draws(fit_occu))
 
 ## Habitat occupancy model --- fitting a model with covariates
 
-- TODO
+We first simulate data
+```{r}
+#| label: occu model complex
+#| echo: true
+#| size: scriptsize
+n_sites <- 100
+n_visits <- 50
 
+set.seed(123)
+prob_occu <- 0.3  # simulated truth
+occu_truth <- rbinom(n = n_sites, size = 1, prob = prob_occu)
 
-## Habitat occupancy model --- relaxing some key assumptions
+covar_detect_site <- rnorm(n = n_sites) # site-level covariate
 
-- TODO
+# visit-level covariate, varies per site AND visit
+covar_detect_visit <- matrix(rnorm(n = n_sites * n_visits), nrow = n_sites, ncol = n_visits)
+
+# simulated truth for effect of covariates
+beta0_true <- -2   # intercept
+beta1_true <- 1    # site-level covariate slope
+beta2_true <- 0.5  # visit-level covariate slope
+
+p_true <- plogis(beta0_true +
+                 beta1_true * covar_detect_site + # recycled across visits
+                 beta2_true * covar_detect_visit) # site x visit matrix
+
+obs_mat <- matrix(NA_real_, nrow = n_sites, ncol = n_visits)
+
+for (site in seq_len(n_sites))
+  obs_mat[site, ] <- occu_truth[site] * rbinom(n_visits, size = 1, prob = p_true[site, ])
+```
+
+## Habitat occupancy model --- fitting a model with covariates
+
+We then define the model
+```{r}
+#| label: occu model complex def
+#| echo: true
+#| size: scriptsize
+code_occu <- nimbleCode({
+  for (site in 1:n_site) {
+    
+    z[site] ~ dbern(prob = psi)
+    
+    for (visit in 1:n_visits) {
+      
+      logit(p_cond[site, visit]) <- beta0 +
+        beta1 * covar_detect_site[site] +
+        beta2 * covar_detect_visit[site, visit]
+      
+      p[site, visit] <- z[site] * p_cond[site, visit]
+      
+      y[site, visit] ~ dbern(p[site, visit])
+    }
+  }
+  
+  psi ~ dunif(0, 1)
+  beta0 ~ dnorm(0, sd = 10)
+  beta1 ~ dnorm(0, sd = 10)
+  beta2 ~ dnorm(0, sd = 10)
+})
+```
+
+## Habitat occupancy model --- fitting a model with covariates
+
+We then set the constant and initialise the model
+
+```{r}
+#| label: occu model complex init
+#| echo: true
+#| size: footnotesize
+constants_occu <- list(n_site = n_sites,
+                       n_visits = n_visits,
+                       covar_detect_site = covar_detect_site,
+                       covar_detect_visit = covar_detect_visit)
+
+z_init <- as.numeric(rowSums(obs_mat) > 0) # initialise z: any detection -> known occupied
+
+inits_occu <- function() {
+  list(psi = runif(1, 0.1, 0.9),
+       beta0 = rnorm(1, 0, 1),
+       beta1 = rnorm(1, 0, 1),
+       beta2 = rnorm(1, 0, 1),
+       z = z_init)
+}
+```
+
+## Habitat occupancy model --- fitting a model with covariates
+
+Finally, we fit the model
+```{r}
+#| label: occu model complex fit
+#| echo: true
+#| size: scriptsize
+#| cache: true
+fit_occu <- nimbleMCMC(code = code_occu,
+                       constants = constants_occu,
+                       data = list(y = obs_mat),
+                       inits = inits_occu,
+                       nchains = 4, setSeed = 1:4,
+                       niter = 10000, nburnin = 4000,
+                       progressBar = FALSE)
+
+summary(as_draws(fit_occu))
+```
+
+**NB:** the agreement between the true parameters and their estimates is very good!
+
+## Habitat occupancy model --- towards more realistic models
+
+Even our complex model made some particularly crude assumptions:
+
+- we considered that the true probability of occupancy was fixed ($\psi=0.3$ in our example) and thus did not vary in time or space
+- we only look at one species in isolation
+
+Relaxing these assumptions makes models quite more complicated, but fortunately, packages such as {nimbleEcology} or {unmarked} (a non-Bayesian alternative) have pre-built models to help you relax these assumptions with very little coding
+
+Rahel will show you how to do that!
 
 
 # Conclusions
@@ -2833,11 +2945,12 @@ summary(as_draws(fit_occu))
 ## Conclusions
 
 - modelling can be tricky, especially when relying on MCMC
+
+- comparing the results from alternative packages relying on different set of assumptions can be useful to identify issues (default settings are not always best)
+
 - simulating data is critical to make sure you do estimate what you think
+
 - {nimble} is very flexible and can do much more than I showed you
-- TODO
-- TODO
-- TODO
 
 
 # Questions? {.unnumbered}
