@@ -1316,7 +1316,7 @@ tibble(x = seq(-4, 4, length.out = 1000),
 \vspace{-0.2cm}
 
 - for the general normal distribution one needs to also define `mean = ...` and `sd = ...` in the function calls
-- the same logic applies for all distributions (e.g. `dchisq(x = ..., df = ...)`, `dchisq(q = ..., df = ...)`, `qchisq(p = ..., df = ...)`)
+- the same logic applies for all distributions (e.g. `dchisq(x = ..., df = ...)`, `pchisq(q = ..., df = ...)`, `qchisq(p = ..., df = ...)`)
 
 
 
