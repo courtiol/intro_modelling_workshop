@@ -1602,7 +1602,7 @@ predict(fit_flipper_int, newdata = tibble(sex = "male", flipper_len = c(200, 201
 
 ## Interpreting coefficients --- plotting predictions
 
-Computing and plotting prediction can be difficult, but the package {modelbased} from the {easystats} universe ([easystats.github.io/easystats](https://easystats.github.io/easystats)) makes this easy for many types of models
+Computing and plotting predictions can be difficult, but the package {modelbased} from the {easystats} universe ([easystats.github.io/easystats](https://easystats.github.io/easystats)) makes this easy for many types of models
 
 ```{r}
 #| echo: true
@@ -2309,8 +2309,7 @@ Let's model the number of recorded number of territories occupied at a sample ar
 ```{r}
 #| echo: true
 #| size: scriptsize
-fit_bird_glm <- glm(territories_top6 ~ median_elevation + n_visits,
-                    data = territories_top6_2000,
+fit_bird_glm <- glm(territories_top6 ~ median_elevation + n_visits, data = territories_top6_2000,
                     family = poisson(link = "log"))
 summary(fit_bird_glm)
 ```
@@ -2355,18 +2354,17 @@ coef(fit_bird_glm)
 ::: {.column width="60%"}
 ```{r}
 #| echo: true
-#| out-height: 4cm 
+#| out-height: 3.5cm
 #| fig-align: center
 #| label: fit bird glm pred plot
-estimate_link(fit_bird_glm) |>
-  plot()
+estimate_link(fit_bird_glm) |> plot()
 ```
 :::
 ::: {.column width="40%"}
 \bluebold{Interpretation}
 
 - on average, \blueit{the log number of territories} is `{r} signif(coef(fit_bird_glm)[["(Intercept)"]], 3)` when the median elevation is 0m and the number of visit is 0
-- on average, every additional meter in median elevation increases \blueit{the log number of territories} by `{r} signif(coef(fit_bird_glm)[["median_elevation"]], 3)`
+- on average, every additional meter in median elevation changes \blueit{the log number of territories} by `{r} signif(coef(fit_bird_glm)[["median_elevation"]], 3)`
 - on average, every additional visit increases \blueit{the log number of territories} by `{r} signif(coef(fit_bird_glm)[["n_visits"]], 3)`
 :::
 :::
@@ -2613,12 +2611,11 @@ constants_pip <- list(p_incl = 0.5, N = nrow(Alien), humans_eaten = Alien$humans
 inits_pip <- list(intercept = mean(Alien$size), slope = 0, sigma = 1)
 ```
 
-\scriptsize
+\footnotesize
 
 **NB:**
 
 - `p_incl` is fixed at 0.5, which reflects a neutral prior belief
-- I centred `humans_eaten` to make the BF comparable to {brms} which internally use priors on parameters applied to centred variables
 - if several predictors were present, `incl` would have to be multiplied to all corresponding regression coefficients
 
 
@@ -2650,7 +2647,7 @@ proba_incl
 
 \scriptsize
 
-1. there is an `{r} round(100*proba_incl, 1)`% posterior probability that the effect of the number of humans eaten on the size of aliens is present, versus a `{r} round(100*(1- proba_incl), 1)`% posterior probability that the data are equally consistent with the null model
+1. there is a `{r} round(100*proba_incl, 1)`% posterior probability that the effect of the number of humans eaten on the size of aliens is present, versus a `{r} round(100*(1- proba_incl), 1)`% posterior probability that the data are equally consistent with the null model
 2. since `p_incl` is fixed at 0.5, `proba_incl` directly determines BF which reduces to $\dfrac{\text{proba\_incl}}{(1-\text{proba\_incl})}=$ `{r} round(proba_incl/(1-proba_incl), 1)` (note, this is a bit different from {brms} BF because the latter internally centres the regressors which are multiplied to priors draws)
 
 
@@ -2688,7 +2685,7 @@ fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
 - this is again provided by the summary tables seen earlier
 
 
-## Tests --- conclusion
+## Tests --- conclusions
 
 - testing parameters directly is much easier but it increases the risk of false positives when null hypothesis significance testing (NHST) is applied (this is why I recommended earlier the testing order going from overall to specific)
 
@@ -2707,17 +2704,178 @@ fixef(fit_alien_lm_brms) # or just summary(fit_alien_lm_brms)
 
 # Model construction
 
-## Model construction --- TODO
 
-- TODO
+## Model construction --- core principles {.c}
+
+- take time to imagine/research the data generating process
+
+- build your model using your knowledge & not by trials and errors
+
+- straight lines are not your only options\
+(e.g. polynomial, discretisation, general additive models)
+
+- keep in mind that your ambition should be kept in check by the amount of data you have
+
+$\rightarrow$ rule of thumb: you should not estimate more than ~ N/10 parameters\
+(if you want to estimate more parameters than that, collect more data)
+
+
+## Model construction --- model simplification
+
+There are pros and cons of adding an additional parameter to a model:
+
+Pros:
+
+- it increases power (if it explains something)
+- it increases understanding
+
+. . .
+
+Cons:
+
+- it reduces power (if it explains nothing)
+- it can lead to \blueit{overfitting}\footnote{describing patterns that are only true in the sample on hand but not in the population}
+- it impedes the reliability of the estimation of other parameters (e.g. due to \blueit{multicollinearity})
+
+. . .
+	
+$\rightarrow$ this simple observation suggests a very controversial practice in Ecology: \blueit{model simplification}, i.e. the activity of starting from a full model (the one with all the covariates of interest), and then proceeding to reduce the number of variables (and thus of parameters) by discarding the "unimportant" ones
+
+
+## Model construction --- model simplification
+
+Is model simplification OK?
+
+. . .
+
+\bluebold{No!}
+
+- it increases the rate of false positives tremendously
+- it increases the risk of overfitting the data
+- the tests, credible intervals and confidence intervals fail to capture and propagate the uncertainty of the model selection procedure itself
+- the noise alone can influence which variable is kept and which is not
+
+$\rightarrow$ just don't do it!
+
+
+## Model construction --- model simplification
+
+Is model simplification OK?
+
+
+\bluebold{No!}
+
+Instead,
+
+- \bluenorm{simple recommendation:} stick to a single \blueit{full model} that is not too complex
+- \bluenorm{acceptable leeway:} drop very weak interactions\
+(the statistical drawbacks are compensated by the large gain in the simplicity of interpretations)
+- \bluenorm{alternatives:} perform \blueit{model averaging} (a weighted combination of estimates across alternative models) or rely on techniques of \blueit{penalisation}\footnote{a single model with many parameters is used but \blueit{shrinkage} is applied on estimates (frequentist) or on prior distributions (Bayesian) to prevent overfit}
+
 
 # Assumptions
 
-## Assumptions --- TODO
+## Assumptions --- LM
+
+\small
+
+\bluebold{Linearity}
+
+- if not, transformation of the dependent or independent variables, inclusion of other independent variables, interactions, or the use of non-linear models (e.g. additive models) can help
+
+. . .
+
+\bluebold{Predictor variables are error-free}
+
+- if not, adding latent variables is straightforward with a Bayesian approach
+
+. . .
+
+\bluebold{Errors are independently, identically, and normally distributed}
+
+- there are many reasons that could cause a departure from these assumptions, and the appropriate remedy depends on the cause:
+
+  - outliers $\rightarrow$ \blueit{robust regressions} (e.g. `MASS::rlm()`)
+  - heteroscedasticity caused by predictor $\rightarrow$ \blueit{heteroscedastic} LM (e.g. `spaMM::fitme()` with `resid.model`)
+  - heteroscedasticity caused by a mean-variance relationship $\rightarrow$ GLM
+  - dependence caused by spatial or temporal proximity $\rightarrow$ \blueit{autoregressive model} (e.g. `AR1()`, `Matern()` in {spaMM})
+  - dependence caused by shared origin $\rightarrow$ \blueit{linear mixed-effect models} (LMM)
+
+
+## Assumptions --- LM
+
+You can test all the assumptions about the errors by eye:
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| out-height: 6cm
+#| fig-width: 12
+par(mfrow = c(2, 3))
+plot(fit_flipper_3var, which = 1:6)
+```
+
+## Assumptions --- LM
+
+You can check the leverage\footnote{how unusual one row of the design matrix is} and influence\footnote{how strongly an observation impacts the predicted value} of each point easily:
+
+```{r}
+#| echo: true
+as_tibble(influence.measures(fit_flipper_3var)$infmat)
+```
+
+
+## Assumptions --- GLM
+
+\bluebold{Model structure}
+
+- linearity (for the linear predictor)
+- lack of perfect multicollinearity
+- predictor variables have fixed values
+
+\bluebold{Errors}
+
+- independence (no serial autocorrelation)
+- lack of \blueit{overdispersion} and \blueit{underdispersion} (see next slide)
+
+`plot(fit)` is not helpful in this case since expectations are not like those of a LM; instead, the package {DHARMa} can help you test some of these assumptions (eventhough the approach it uses is not flawless)
+
+## Assumptions --- GLM
+
+A GLM assumes a particular relationship between mu and var(mu):
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| out-height: 4cm
+#| fig-width: 16
+p <- seq(0, 1, 0.1); lambda <- 0:10; theta <- 0:10
+v_b <- binomial()$variance(p)
+v_p <- poisson()$variance(lambda)
+v_G <- Gamma()$variance(theta)
+par(mfrow = c(1, 3), las = 1, cex = 1.5)
+plot(v_b ~ p, type = "o")
+plot(v_p ~ lambda, type = "o")
+plot(v_G ~ theta, type = "o")
+```
+
+## Assumptions --- GLM
 
 <!-- mention zero inflated model as transition towards habitat occupancy ones -->
-- TODO
 
+A GLM assumes a particular relationship between mu and var(mu)
+
+- if the variance increases faster than assumed, there is \blueit{overdispersion} (frequent)
+
+- if the variance increases more slowly than assumed, there is \blueit{underdispersion} (rare)
+
+. . .
+
+\vspace{1em}
+
+Typical situation: count data are overdispersed compared to Poisson expectation
+
+$\rightarrow$ \blueit{negative binomial model} (e.g. {spaMM}, {glmmTMB}, {brms}, {nimble}) and/or \blueit{zero-augmented models} (e.g. {glmmTMB}, {brms}, {nimble})
 
 
 # Habitat occupancy model
@@ -2783,10 +2941,10 @@ for (site in seq_len(n_sites)) {
 }
 
 code_occu <- nimbleCode({
-  for (site in 1:n_site) {
+  for (site in seq_len(n_sites)) {
     z[site] ~ dbern(prob = psi) # occupancy status
     p[site] <- z[site] * p_cond  # detection prob
-    for (visit in 1:n_visits) {
+    for (visit in seq_len(n_visits)) {
       y[site, visit] ~ dbern(p[site]) # observation outcome
     }
   }
@@ -2802,7 +2960,7 @@ We can now fit the model
 #| echo: true
 #| cache: true
 #| size: scriptsize
-constants_occu <- list(n_site = n_sites, n_visits = n_visits)
+constants_occu <- list(n_sites = n_sites, n_visits = n_visits)
 
 z_init <- as.numeric(rowSums(obs_mat) > 0) # initialise z: any detection -> known occupied
 inits_occu <- list(p_cond = 0.5, psi = 0.1, z = z_init)
@@ -2860,11 +3018,11 @@ We then define the model
 #| echo: true
 #| size: scriptsize
 code_occu <- nimbleCode({
-  for (site in 1:n_site) {
+  for (site in seq_len(n_sites)) {
     
     z[site] ~ dbern(prob = psi)
     
-    for (visit in 1:n_visits) {
+    for (visit in seq_len(n_visits)) {
       
       logit(p_cond[site, visit]) <- beta0 +
         beta1 * covar_detect_site[site] +
@@ -2891,7 +3049,7 @@ We then set the constant and initialise the model
 #| label: occu model complex init
 #| echo: true
 #| size: footnotesize
-constants_occu <- list(n_site = n_sites,
+constants_occu <- list(n_sites = n_sites,
                        n_visits = n_visits,
                        covar_detect_site = covar_detect_site,
                        covar_detect_visit = covar_detect_visit)
@@ -2935,18 +3093,18 @@ Even our complex model made some particularly crude assumptions:
 - we considered that the true probability of occupancy was fixed ($\psi=0.3$ in our example) and thus did not vary in time or space
 - we only look at one species in isolation
 
-Relaxing these assumptions makes models quite more complicated, but fortunately, packages such as {nimbleEcology} or {unmarked} (a non-Bayesian alternative) have pre-built models to help you relax these assumptions with very little coding
+Relaxing these assumptions makes models much more complicated, but fortunately, packages such as {nimbleEcology} or {unmarked} (a non-Bayesian alternative) have pre-built models to help you relax these assumptions with very little coding
 
 Rahel will show you how to do that!
 
 
 # Conclusions
 
-## Conclusions
+## Conclusions {.c}
 
 - modelling can be tricky, especially when relying on MCMC
 
-- comparing the results from alternative packages relying on different set of assumptions can be useful to identify issues (default settings are not always best)
+- comparing the results from alternative packages relying on a different set of assumptions can be useful to identify issues (default settings are not always best)
 
 - simulating data is critical to make sure you do estimate what you think
 
