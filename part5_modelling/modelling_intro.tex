@@ -3257,7 +3257,7 @@ Defining the GLM by hand with \{nimble\} is relatively simple\ldots{}
 \begin{frame}[fragile]{GLM --- model fitting: Bayesian approach (prior
 predictive checking)}
 \protect\phantomsection\label{glm-model-fitting-bayesian-approach-prior-predictive-checking}
-\ldots{} but again we need to make sure the priors are sensible(here it
+\ldots{} but again we need to make sure the priors are sensible (here it
 would be even more difficult to foresee)
 
 \begin{columns}[T]
@@ -3772,6 +3772,103 @@ differ
 
 \begin{frame}[fragile]{GLM --- predictions and interpretation}
 \protect\phantomsection\label{glm-predictions-and-interpretation-3}
+Demonstration about exponential of estimates as odds ratio
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p1 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{1}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p2 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{2}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p5 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{5}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p6 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{6}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+
+\NormalTok{p2 }\SpecialCharTok{{-}}\NormalTok{ p1}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+        1 
+0.2444197 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p6 }\SpecialCharTok{{-}}\NormalTok{ p5}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+         1 
+0.02006751 
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{GLM --- predictions and interpretation}
+\protect\phantomsection\label{glm-predictions-and-interpretation-4}
+Demonstration about exponential of estimates as odds ratio
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p1 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{1}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p2 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{2}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p5 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{5}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p6 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{6}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+
+\NormalTok{(p2}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p2)) }\SpecialCharTok{/}\NormalTok{ (p1}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p1)) }\CommentTok{\# odds ratio for 2 humans eaten compared to 1 eaten}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+       1 
+2.718521 
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(p6}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p6)) }\SpecialCharTok{/}\NormalTok{ (p5}\SpecialCharTok{/}\NormalTok{(}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ p5)) }\CommentTok{\# odds ratio for 6 humans eaten compared to 5 eaten}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+       1 
+2.718521 
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{GLM --- predictions and interpretation}
+\protect\phantomsection\label{glm-predictions-and-interpretation-5}
+Demonstration about exponential of estimates as odds ratio
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{p1 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{1}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p2 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{2}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p5 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{5}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+\NormalTok{p6 }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(fit\_alien\_glm, }\AttributeTok{newdata =} \FunctionTok{tibble}\NormalTok{(}\AttributeTok{humans\_eaten =} \DecValTok{6}\NormalTok{), }\AttributeTok{type =} \StringTok{"response"}\NormalTok{)}
+
+\FunctionTok{exp}\NormalTok{(}\FunctionTok{coef}\NormalTok{(fit\_alien\_glm)[}\StringTok{"humans\_eaten"}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+humans_eaten 
+    2.718521 
+\end{verbatim}
+
+\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{GLM --- predictions and interpretation}
+\protect\phantomsection\label{glm-predictions-and-interpretation-6}
 At the scale of the response variable, predictions and interpretation
 differ
 
@@ -3813,11 +3910,11 @@ differ
 
 \begin{itemize}
 \item
-  on average, every additional meter in median elevation increases the
+  on average, every additional meter in median elevation changes the
   number of territories by \(100 \times (e^{\text{slope}}-1)=\)
   -0.0432\blueit{\%}
 \item
-  on average, every additional 1000 meter in median elevation increases
+  on average, every additional 1000 meters in median elevation increases
   the number of territories by
   \(100 \times (e^{ \text{slope}\times1000}-1)=\) -35.1\blueit{\%}
 \end{itemize}
@@ -4444,7 +4541,7 @@ You can test all the assumptions about the errors by eye:
 \end{Shaded}
 
 \begin{center}
-\includegraphics[width=\linewidth,height=6cm,keepaspectratio]{modelling_intro_files/figure-beamer/unnamed-chunk-35-1.pdf}
+\includegraphics[width=\linewidth,height=6cm,keepaspectratio]{modelling_intro_files/figure-beamer/unnamed-chunk-38-1.pdf}
 \end{center}
 
 \normalsize
@@ -4531,7 +4628,7 @@ A GLM assumes a particular relationship between mu and var(mu):
 \end{Shaded}
 
 \begin{center}
-\includegraphics[width=\linewidth,height=4cm,keepaspectratio]{modelling_intro_files/figure-beamer/unnamed-chunk-37-1.pdf}
+\includegraphics[width=\linewidth,height=4cm,keepaspectratio]{modelling_intro_files/figure-beamer/unnamed-chunk-40-1.pdf}
 \end{center}
 
 \normalsize
