@@ -4654,9 +4654,24 @@ A GLM assumes a particular relationship between mu and var(mu)
 Typical situation: count data are overdispersed compared to Poisson
 expectation
 
-\(\rightarrow\) \blueit{negative binomial model} (e.g.~\{spaMM\},
-\{glmmTMB\}, \{brms\}, \{nimble\}) and/or \blueit{zero-augmented models}
-(e.g.~\{glmmTMB\}, \{brms\}, \{nimble\})
+\begin{itemize}
+\item
+  \blueit{negative binomial model} (e.g.~\{spaMM\}, \{glmmTMB\},
+  \{brms\}, \{nimble\})
+\item
+  \blueit{zero-augmented models}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    zero-inflated models (e.g.~\{glmmTMB\}, \{brms\}, \{nimble\})
+  \item
+    hurdle models (e.g.~\{spaMM\}, \{glmmTMB\}, \{brms\}, \{nimble\})
+  \end{itemize}
+\item
+  negative binomial zero-augmented models (e.g.~\{glmmTMB\}, \{brms\},
+  \{nimble\})
+\end{itemize}
 \end{frame}
 
 \section{Habitat occupancy model}\label{habitat-occupancy-model}
