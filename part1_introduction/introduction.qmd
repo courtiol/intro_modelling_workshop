@@ -134,11 +134,11 @@ knitr::include_graphics("figures/Culture_map_FR_VN.png")
 
 ## Tentative schedule
 
-| Day   | Date     | Morning                            | Afternoon     |
-|-------|----------|------------------------------------|---------------|
-| Day 1 | Aug. 24  | Introduction + R language          | R language    |
-| Day 2 | Aug. 25  | Reproducible reporting + Practice  | Core concepts |
-| Day 3 | Aug. 26  | Core concepts                      | Linear Models |
-| Day 4 | Aug. 27  | Linear Models                      | Linear Models |
+| Day   | Date     | Morning                            | Afternoon      |
+|-------|----------|------------------------------------|----------------|
+| Day 1 | Aug. 24  | Introduction + R language          | R language     |
+| Day 2 | Aug. 25  | Reproducible reporting + Practice  | Core concepts  |
+| Day 3 | Aug. 26  | Core concepts                      | Linear Models  |
+| Day 4 | Aug. 27  | Generalised Linear Models          | Tests and more |
 
 # Questions?  {.unnumbered .unlisted}
